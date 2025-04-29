@@ -1,0 +1,92 @@
+plugins {
+	id 'java'
+	id 'application'
+	id 'io.github.goooler.shadow' version '8.1.8'
+    id 'com.github.hierynomus.license' version '0.16.1'
+}
+
+group = 'com.tsurugidb.mcp'
+version = '0.1.0-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+tasks.withType(JavaCompile) { task ->
+    task.options.encoding = 'UTF-8'
+}
+
+if (hasProperty('mavenLocal')) {
+    repositories {
+        mavenLocal()
+    }
+} else {
+    repositories {
+        maven {
+            url 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+            content {
+                includeGroupByRegex 'com\\.tsurugidb.*'
+            }
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'io.modelcontextprotocol.sdk:mcp:0.8.1'
+    implementation 'com.tsurugidb.iceaxe:iceaxe-core:1.9.0-SNAPSHOT'
+    implementation 'com.beust:jcommander:1.82'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0'
+    implementation "org.slf4j:slf4j-simple:2.0.17"
+
+    testImplementation 'io.modelcontextprotocol.sdk:mcp-test:0.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+}
+
+license {
+    def confDir = 'buildSrc/src/main/resources'
+    header = project.file("$confDir/source-header.txt")
+    mapping('java', 'SLASHSTAR_STYLE')
+    include('**/*.java')
+}
+
+tasks.named('test') {
+    systemProperty 'tsurugi.dbtest.endpoint', findProperty('dbtest.endpoint') ?: 'tcp://localhost:12345'
+    systemProperty 'com.tsurugidb.tsubakuro.jniverify', 'false'
+	useJUnitPlatform()
+}
+
+distributions {
+    main {
+        distributionBaseName = 'tsurugi-mcp-server'
+    }
+    shadow {
+        distributionBaseName = 'tsurugi-mcp-server'
+        distributionClassifier = 'shadow'
+    }
+}
+
+application {
+    applicationName = 'tsurugi-mcp-server'
+    mainClass = 'com.tsurugidb.mcp.server.Main'
+}
+
+run {
+    description 'run MCP server : -Dconnection=<endpoint-uri> [-DlogLevel=<level>]'
+    args = [
+        '--connection', System.getProperty('connection', 'tcp://localhost:12345'),
+    ]
+    systemProperty 'org.slf4j.simpleLogger.defaultLogLevel', System.getProperty('logLevel', 'INFO')
+    jvmArgs = ['--add-opens=java.base/java.nio=ALL-UNNAMED']
+}
+
+shadowJar {
+    archiveBaseName = 'tsurugi-mcp-server'
+    archiveClassifier = 'all'
+    mergeServiceFiles()
+}
