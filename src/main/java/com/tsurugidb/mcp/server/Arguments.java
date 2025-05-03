@@ -30,7 +30,7 @@ public class Arguments {
 
     private URI connectionUri;
     private String connectionLabel = TsurugiMcpServer.SERVER_NAME;
-    private long connectionTimeoutMillis;
+    private long connectionTimeoutMillis = Long.MAX_VALUE;
     private List<String> enableToolList = TsurugiMcpTool.toolNames();
     private List<String> disableToolList = new ArrayList<>();
     private boolean resource = true;
