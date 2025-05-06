@@ -10,3 +10,6 @@ build/
 .classpath
 .project
 bin/
+
+# Ignore macOS system files
+.DS_Store
