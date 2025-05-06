@@ -1,0 +1,37 @@
+name: Tsurugi-MCP-Server-CI-Release
+
+on: [workflow_dispatch, workflow_call]
+concurrency: ${{ github.workflow }}
+
+jobs:
+  Publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    env:
+      JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+
+    steps:
+      - name: Setup_Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create_Release
+        if: contains(github.ref, '/tags/')
+        run: |
+          ./gradlew -i shadowJar --warning-mode all
+
+          set -x
+          gh release create ${TMS_VERSION} build/libs/tsurugi-mcp-server-${TMS_VERSION}-all.jar --title ${TMS_VERSION} --latest --repo project-tsurugi/tsurugi-mcp-server
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TMS_VERSION: ${{ github.ref_name }}

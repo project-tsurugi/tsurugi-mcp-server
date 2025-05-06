@@ -1,0 +1,75 @@
+name: Tsurugi-MCP-Server-CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      tsurugi_version:
+        type: string
+        default: 'snapshot'
+      os:
+        type: string
+        default: 'ubuntu-22.04'
+      tsurugi_loglevel:
+        type: number
+        default: 30
+
+jobs:
+  Build:
+    runs-on: [self-hosted, docker]
+    permissions:
+      checks: write
+      contents: read
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/project-tsurugi/tsurugi-ci:${{ inputs.os || 'ubuntu-22.04' }}
+      volumes:
+        - ${{ vars.gradle_cache_dir }}:/root/.gradle
+    defaults:
+      run:
+        shell: bash
+    env:
+      JAVA_TOOL_OPTIONS : -Dfile.encoding=UTF8
+      DBTEST_ENDPOINT   : tcp://tsurugi:12345
+
+    services:
+      tsurugi:
+        image: ghcr.io/project-tsurugi/tsurugidb:${{ inputs.tsurugi_version || 'snapshot' }}-${{ inputs.os || 'ubuntu-22.04' }}
+        ports:
+          - 12345:12345
+        env:
+          GLOG_v: ${{ inputs.tsurugi_loglevel || 30 }}
+    steps:
+      - name: Setup_Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assemble
+        run: |
+          ./gradlew -i clean assemble --warning-mode all
+
+      - name: Check
+        run: |
+          ./gradlew check -Pdbtest.endpoint=${{ env.DBTEST_ENDPOINT }} --continue --warning-mode all
+
+      - name: Verify
+        uses: project-tsurugi/tsurugi-annotations-action@v1
+        if: always()
+        with:
+          junit_input: '**/build/test-results/**/TEST-*.xml'
+          spotbugs_input: '**/build/reports/spotbugs/main/*.xml'
+          checkstyle_input: '**/build/reports/checkstyle/main.xml'
+
+  Publish:
+    uses: ./.github/workflows/ci-release.yml
+    if: github.repository_owner == 'project-tsurugi' && (contains(github.ref, '/tags/'))
+    needs: Build
+    secrets: inherit
+    permissions:
+      contents: write
