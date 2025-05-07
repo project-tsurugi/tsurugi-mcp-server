@@ -56,7 +56,7 @@ class GetTableMetadataToolTest extends ToolTester {
             var result = (TableMetadata) target.action(null, args);
 
             assertEquals("customer", result.tableName());
-            assertEquals(null, result.tableDescription());
+            assertEquals("customer for MCP test.", result.tableDescription());
 
             var columns = result.columns();
             assertEquals(3, columns.size());
@@ -64,21 +64,21 @@ class GetTableMetadataToolTest extends ToolTester {
             {
                 var column = columns.get(i++);
                 assertEquals("c_id", column.columnName());
-                assertEquals(null, column.columnDescription());
+                assertEquals("customer id", column.columnDescription());
                 assertEquals("BIGINT", column.columnType());
                 assertEquals("NOT NULL", column.constraint());
             }
             {
                 var column = columns.get(i++);
                 assertEquals("c_name", column.columnName());
-                assertEquals(null, column.columnDescription());
+                assertEquals("customer name", column.columnDescription());
                 assertEquals("VARCHAR(20)", column.columnType());
                 assertEquals("NULL", column.constraint());
             }
             {
                 var column = columns.get(i++);
                 assertEquals("c_age", column.columnName());
-                assertEquals(null, column.columnDescription());
+                assertEquals("customer age", column.columnDescription());
                 assertEquals("INT", column.columnType());
                 assertEquals("NULL", column.constraint());
             }
