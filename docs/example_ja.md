@@ -7,6 +7,9 @@ tsurugi-mcp-serverを使うことにより、[Model Context Protocol](https://gi
 例えば[Claude Desktop](https://claude.ai/download)で以下のように使うことができます。  
 （Claude Desktopの設定方法は[README](../README.md)を参照してください。tsurugi-mcp-serverではLLMから実行できるツールをいくつか用意しており、Claude Desktopがツールを実行する際はユーザーに対して使用許可が求められます）
 
+- **サンプルのテーブルを作って**
+  - 適当なテーブルが作られます。
+    - `listTableNames` ツールを実行してテーブル一覧を確認し、存在しないテーブル名を使ってcreate文を生成して、 `executeDdl` ツールで実行します。さらにサンプルデータを登録するために `update` ツールでinsert文を実行することがあります。
 - **Tsurugiのテーブル一覧を見せて**
   - テーブル一覧が表示されます。
     - `listTableNames` ツールが実行されます。
@@ -22,9 +25,6 @@ tsurugi-mcp-serverを使うことにより、[Model Context Protocol](https://gi
   - productsテーブルのノートパソコンのレコードのstockカラムに10加算されます。
     - データを更新するupdate文が生成され、 `update` ツールが実行されます。
       - 先にproductsテーブルの内容を表示したので、product_nameが「ノートパソコン」であるデータのproduct_idが1であることが分かっており、`UPDATE products SET stock = stock + 10 WHERE product_id = 1` というupdate文が生成されます。
-- **サンプルのテーブルを作って**
-  - 適当なテーブルが作られます。
-    - `listTableNames` ツールを実行してテーブル一覧を確認し、存在しないテーブル名を使ってcreate文を生成して、 `executeDdl` ツールで実行します。さらにサンプルデータを登録するために `update` ツールでinsert文を実行することがあります。
 
 > [!NOTE]
 >
