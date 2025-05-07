@@ -25,7 +25,7 @@ if (hasProperty('mavenLocal')) {
 } else {
     repositories {
         maven {
-            url 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+            url = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
             content {
                 includeGroupByRegex 'com\\.tsurugidb.*'
             }
@@ -44,13 +44,15 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0'
     implementation "org.slf4j:slf4j-simple:2.0.17"
 
+    testImplementation platform('org.junit:junit-bom:5.12.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'io.modelcontextprotocol.sdk:mcp-test:0.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 license {
     def confDir = 'buildSrc/src/main/resources'
-    header = project.file("$confDir/source-header.txt")
+    header = file("$confDir/source-header.txt")
     mapping('java', 'SLASHSTAR_STYLE')
     include('**/*.java')
 }
@@ -77,7 +79,7 @@ application {
 }
 
 run {
-    description 'run MCP server : -Dconnection=<endpoint-uri> [-DlogLevel=<level>]'
+    description = 'run MCP server : -Dconnection=<endpoint-uri> [-DlogLevel=<level>]'
     args = [
         '--connection', System.getProperty('connection', 'tcp://localhost:12345'),
     ]
