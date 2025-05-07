@@ -90,5 +90,6 @@ run {
 shadowJar {
     archiveBaseName = 'tsurugi-mcp-server'
     archiveClassifier = 'all'
+    archiveVersion = ''
     mergeServiceFiles()
 }

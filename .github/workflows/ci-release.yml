@@ -31,7 +31,7 @@ jobs:
           ./gradlew -i shadowJar --warning-mode all
 
           set -x
-          gh release create ${TMS_VERSION} build/libs/tsurugi-mcp-server-${TMS_VERSION}-all.jar --title ${TMS_VERSION} --latest --repo project-tsurugi/tsurugi-mcp-server
+          gh release create ${TMS_VERSION} build/libs/tsurugi-mcp-server-all.jar --title ${TMS_VERSION} --latest --repo project-tsurugi/tsurugi-mcp-server
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TMS_VERSION: ${{ github.ref_name }}
