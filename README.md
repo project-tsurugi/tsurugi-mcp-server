@@ -55,7 +55,7 @@ To use this server with the [Claude Desktop](https://claude.ai/download), add th
       "command": "java",
       "args": [
         "-jar",
-        "/path/to/tsurugi-mcp-server-0.1.0-SNAPSHOT-all.jar",
+        "/path/to/tsurugi-mcp-server-all.jar",
         "-c", "tcp://localhost:12345"
       ]
     }
