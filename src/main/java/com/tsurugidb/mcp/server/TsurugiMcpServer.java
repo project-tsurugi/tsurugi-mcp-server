@@ -28,8 +28,7 @@ public class TsurugiMcpServer {
     public static final String SERVER_NAME = "tsurugi-mcp-server";
     public static final String SERVER_VERSION = "0.1.0";
 
-    public static McpSyncServer syncServer(McpServerTransportProvider transportProvider, ObjectMapper objectMapper, Arguments arguments) {
-        var pool = SessionPool.create(arguments);
+    public static McpSyncServer syncServer(McpServerTransportProvider transportProvider, ObjectMapper objectMapper, Arguments arguments, SessionPool pool) {
         var tools = TsurugiMcpTool.syncTools(objectMapper, arguments, pool);
         var resources = new TsurugiMcpResource(objectMapper, arguments, pool).syncResources();
 
@@ -48,7 +47,6 @@ public class TsurugiMcpServer {
                 .tools(tools) //
                 .resources(resources) //
                 .build();
-
         return server;
     }
 }

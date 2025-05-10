@@ -54,7 +54,9 @@ public class SessionPool implements AutoCloseable {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
+                LOG.debug("shutdownHook start");
                 pool.close();
+                LOG.debug("shutdownHook end");
             }
         });
         return pool;
@@ -120,12 +122,22 @@ public class SessionPool implements AutoCloseable {
 
     @Override
     public void close() {
+        if (sessionList.isEmpty()) {
+            return;
+        }
+
+        int count = 0, error = 0;
         for (var session : sessionList) {
             try {
                 session.actualClose();
+                count++;
             } catch (Exception e) {
                 LOG.warn("session close error", e);
+                error++;
             }
         }
+        LOG.info("SessionPool closed. session={}, error={}", count, error);
+
+        sessionList.clear();
     }
 }

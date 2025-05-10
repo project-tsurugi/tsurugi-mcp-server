@@ -19,11 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
+import com.tsurugidb.mcp.server.dao.SessionPool;
 import com.tsurugidb.mcp.server.util.JsonUtil;
 
 import io.modelcontextprotocol.server.McpSyncServer;
-import io.modelcontextprotocol.server.transport.StdioServerTransportProvider;
-import io.modelcontextprotocol.spec.McpServerTransportProvider;
 
 public class Main {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
@@ -47,9 +46,10 @@ public class Main {
 
     public void main(Arguments arguments) {
         var objectMapper = JsonUtil.createObjectMapper();
+        var pool = SessionPool.create(arguments);
 
-        McpServerTransportProvider transport = new StdioServerTransportProvider(objectMapper);
-        McpSyncServer server = TsurugiMcpServer.syncServer(transport, objectMapper, arguments);
+        var transportProvider = new TsurugiMcpServerTransportProvider(objectMapper, pool);
+        McpSyncServer server = TsurugiMcpServer.syncServer(transportProvider, objectMapper, arguments, pool);
         LOG.info("serverInfo={}", server.getServerInfo());
     }
 }
