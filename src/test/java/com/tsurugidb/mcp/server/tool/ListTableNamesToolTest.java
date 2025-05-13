@@ -22,10 +22,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.tsurugidb.mcp.server.TsurugiMcpTester;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 import com.tsurugidb.mcp.server.tool.TableNamesTool.TableName;
 
-class ListTableNamesToolTest extends ToolTester {
+class ListTableNamesToolTest extends TsurugiMcpTester {
 
     @Test
     void action() throws Exception {

@@ -21,6 +21,9 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.mcp.server.dao.SessionPool;
@@ -34,6 +37,7 @@ import io.modelcontextprotocol.spec.McpSchema.ReadResourceResult;
 import io.modelcontextprotocol.spec.McpSchema.TextResourceContents;
 
 public class TsurugiMcpResource {
+    private static final Logger LOG = LoggerFactory.getLogger(TsurugiMcpResource.class);
 
     private final ObjectMapper objectMapper;
     private final Arguments arguments;
@@ -80,26 +84,37 @@ public class TsurugiMcpResource {
         return new SyncResourceSpecification(resource, this::tableSchema);
     }
 
-    ReadResourceResult tableSchema(McpSyncServerExchange exchange, ReadResourceRequest request) {
-        var uri = URI.create(request.uri());
-        String tableName = uri.getHost();
+    private ReadResourceResult tableSchema(McpSyncServerExchange exchange, ReadResourceRequest request) {
+        try {
+            String uri = request.uri();
+            var metadata = tableSchemaMain(uri);
 
-        String text;
+            String text = objectMapper.writeValueAsString(metadata);
+            var content = new TextResourceContents(request.uri(), "application/json", text);
+            return new ReadResourceResult(List.of(content));
+        } catch (RuntimeException e) {
+            LOG.warn("runtime exception", e);
+            throw e;
+        } catch (Exception e) {
+            LOG.warn("exception", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    TableMetadata tableSchemaMain(String uriString) throws IOException, InterruptedException {
+        var uri = URI.create(uriString);
+        String tableName = uri.getAuthority();
+        if (tableName == null) {
+            throw new RuntimeException("tableName is null");
+        }
+
         try (var session = getSession()) {
             var opt = session.findTableMetadata(tableName);
             if (opt.isEmpty()) {
                 throw new RuntimeException(MessageFormat.format("table not found. tableName={0}", tableName));
             }
-            var metadata = TableMetadata.of(opt.get());
 
-            text = objectMapper.writeValueAsString(metadata);
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            return TableMetadata.of(opt.get());
         }
-
-        var content = new TextResourceContents(request.uri(), "application/json", text);
-        return new ReadResourceResult(List.of(content));
     }
 }

@@ -13,32 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tsurugidb.mcp.server.tool;
+package com.tsurugidb.mcp.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.HashMap;
-
 import org.junit.jupiter.api.Test;
 
-import com.tsurugidb.mcp.server.TsurugiMcpTester;
 import com.tsurugidb.mcp.server.dao.SessionPool;
-import com.tsurugidb.mcp.server.entity.TableMetadata;
 
-class GetTableMetadataToolTest extends TsurugiMcpTester {
+class TsurugiMcpResourceTest extends TsurugiMcpTester {
 
     @Test
-    void action() throws Exception {
+    void tableSchema() throws Exception {
         var arguments = createTestArguments();
         try (var pool = SessionPool.create(arguments)) {
             try (var session = pool.getSession()) {
                 var tm = session.createTransactionManager();
-                tm.executeDdl("drop table if exists customer");
+                tm.executeDdl("drop table if exists r_customer");
                 tm.executeDdl("""
                         /**
                          customer for MCP test.
                          */
-                        create table customer (
+                        create table r_customer (
                           /** customer id */
                           c_id bigint primary key,
                           /** customer name */
@@ -49,14 +45,11 @@ class GetTableMetadataToolTest extends TsurugiMcpTester {
                         """);
             }
 
-            var target = new TableMetadataTool();
-            target.initialize(createObjectMapper(), arguments, pool);
+            var target = new TsurugiMcpResource(createObjectMapper(), arguments, pool);
 
-            var args = new HashMap<String, Object>();
-            args.put(TableMetadataTool.TABLE_NAME, "customer");
-            var result = (TableMetadata) target.action(null, args);
+            var result = target.tableSchemaMain("tsurugidb://r_customer/schema");
 
-            assertEquals("customer", result.tableName());
+            assertEquals("r_customer", result.tableName());
             assertEquals("customer for MCP test.", result.tableDescription());
 
             var columns = result.columns();

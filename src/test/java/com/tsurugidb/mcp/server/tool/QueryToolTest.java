@@ -34,9 +34,10 @@ import com.tsurugidb.iceaxe.sql.parameter.TgBindVariables;
 import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.mcp.server.dao.QueryUtil.QueryResult;
+import com.tsurugidb.mcp.server.TsurugiMcpTester;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
-class QueryToolTest extends ToolTester {
+class QueryToolTest extends TsurugiMcpTester {
 
     private static final int SIZE = 500;
 

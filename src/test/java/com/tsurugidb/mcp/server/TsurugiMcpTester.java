@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tsurugidb.mcp.server.tool;
+package com.tsurugidb.mcp.server;
 
 import java.net.URI;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tsurugidb.mcp.server.Arguments;
 import com.tsurugidb.mcp.server.util.JsonUtil;
 
-public abstract class ToolTester {
+public abstract class TsurugiMcpTester {
 
     private static final String SYSPROP_DBTEST_ENDPOINT = "tsurugi.dbtest.endpoint";
     private static URI endpoint;

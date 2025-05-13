@@ -23,9 +23,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
+import com.tsurugidb.mcp.server.TsurugiMcpTester;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
-class DdlToolTest extends ToolTester {
+class DdlToolTest extends TsurugiMcpTester {
 
     @BeforeEach
     void beforeEach() throws Exception {
