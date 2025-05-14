@@ -66,6 +66,12 @@ jobs:
           spotbugs_input: '**/build/reports/spotbugs/main/*.xml'
           checkstyle_input: '**/build/reports/checkstyle/main.xml'
 
+      - name: Upload_ShadowJar
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsurugi-mcp-server-all.jar
+          path: build/libs/tsurugi-mcp-server-all.jar
+
   Publish:
     uses: ./.github/workflows/ci-release.yml
     if: github.repository_owner == 'project-tsurugi' && (contains(github.ref, '/tags/'))
