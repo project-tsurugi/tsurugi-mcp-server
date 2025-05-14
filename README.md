@@ -44,7 +44,7 @@
 
 ### Usage with Claude Desktop
 
-First, download the tsurugi-mcp-server jar file from release page.
+First, download the tsurugi-mcp-server jar file from [release page](https://github.com/project-tsurugi/tsurugi-mcp-server/releases).
 
 To use this server with the [Claude Desktop](https://claude.ai/download), add the following configuration to the "mcpServers" section of your `claude_desktop_config.json`:
 
