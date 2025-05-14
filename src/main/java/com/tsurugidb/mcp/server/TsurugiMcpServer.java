@@ -31,6 +31,7 @@ public class TsurugiMcpServer {
     public static McpSyncServer syncServer(McpServerTransportProvider transportProvider, ObjectMapper objectMapper, Arguments arguments, SessionPool pool) {
         var tools = TsurugiMcpTool.syncTools(objectMapper, arguments, pool);
         var resources = new TsurugiMcpResource(objectMapper, arguments, pool).syncResources();
+        var prompts = new TsurugiMcpPrompt(arguments).syncPrompts();
 
         var capabilities = ServerCapabilities.builder();
         if (!tools.isEmpty()) {
@@ -39,6 +40,9 @@ public class TsurugiMcpServer {
         if (!resources.isEmpty()) {
             capabilities.resources(false, false);
         }
+        if (!prompts.isEmpty()) {
+            capabilities.prompts(false);
+        }
 //      capabilities.logging();
 
         var server = McpServer.sync(transportProvider) //
@@ -46,6 +50,7 @@ public class TsurugiMcpServer {
                 .capabilities(capabilities.build()) //
                 .tools(tools) //
                 .resources(resources) //
+                .prompts(prompts) //
                 .build();
         return server;
     }

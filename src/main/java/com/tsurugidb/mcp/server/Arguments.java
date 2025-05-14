@@ -33,7 +33,8 @@ public class Arguments {
     private long connectionTimeoutMillis = Long.MAX_VALUE;
     private List<String> enableToolList = TsurugiMcpTool.toolNames();
     private List<String> disableToolList = new ArrayList<>();
-    private boolean resource = true;
+    private boolean resourceEnable = true;
+    private boolean promptEnable = true;
     private int responseLimistSize = 10 * 1024;
     private boolean printHelp;
 
@@ -137,11 +138,24 @@ public class Arguments {
             description = "true: Enable resource", //
             required = false)
     public void setResource(boolean enable) {
-        this.resource = enable;
+        this.resourceEnable = enable;
     }
 
     public boolean isResource() {
-        return this.resource;
+        return this.resourceEnable;
+    }
+
+    @Parameter(order = 41, //
+            names = { "--prompt" }, //
+            arity = 1, //
+            description = "true: Enable prompt", //
+            required = false)
+    public void setPrompt(boolean enable) {
+        this.promptEnable = enable;
+    }
+
+    public boolean isPrompt() {
+        return this.promptEnable;
     }
 
     @Parameter(order = 90, //

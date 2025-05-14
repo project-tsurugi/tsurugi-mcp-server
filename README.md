@@ -40,6 +40,15 @@
 
 - table metadata
 
+### Prompts
+
+- `tableList-prompt`
+  - Prompt to display the list of tables.
+- `tableMetadata-prompt`
+  - Prompt to display the table metadata.
+- `query-prompt`
+  - Prompt to display the table data.
+
 ## Configuration
 
 ### Usage with Claude Desktop
@@ -70,6 +79,7 @@ To use this server with the [Claude Desktop](https://claude.ai/download), add th
   - `-c` or `--connection` - the endpoint URL to connect Tsurugi. (required)
   - If you want to limit the tools used, add `--enable-tools`. (e.g., for read-only access: `"--enable-tools", "listTableNames, getTableMetadata, query"`)
   - If resources is not used, add `"--resource", "false"`.
+  - If prompts is not used, add `"--prompt", "false"`.
 
 ## How to build
 
