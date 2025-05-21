@@ -30,7 +30,7 @@ public class Arguments {
 
     private URI connectionUri;
     private String connectionLabel = TsurugiMcpServer.SERVER_NAME;
-    private long connectionTimeoutMillis = Long.MAX_VALUE;
+    private long connectionTimeout = 30;
     private List<String> enableToolList = TsurugiMcpTool.toolNames();
     private List<String> disableToolList = new ArrayList<>();
     private boolean resourceEnable = true;
@@ -67,17 +67,17 @@ public class Arguments {
     @Parameter(order = 12, //
             names = { "--connection-timeout" }, //
             arity = 1, //
-            description = "Connection timeout (in milliseconds).", //
+            description = "Connection timeout (in seconds).", //
             required = false)
-    public void setConnectionTimeoutMillis(long value) {
+    public void setConnectionTimeout(long value) {
         if (value < 0) {
             throw new IllegalArgumentException(MessageFormat.format("timeout must be >= 0 (specified: {0})", value));
         }
-        this.connectionTimeoutMillis = value;
+        this.connectionTimeout = value;
     }
 
-    public long getConnectionTimeoutMillis() {
-        return connectionTimeoutMillis;
+    public long getConnectionTimeout() {
+        return connectionTimeout;
     }
 
     public static class ToolNameValidator implements IParameterValidator {

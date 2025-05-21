@@ -46,7 +46,7 @@ public class SessionPool implements AutoCloseable {
         var sessionOption = TgSessionOption.of();
         {
             sessionOption.setLabel(arguments.getConnectionLabel());
-            sessionOption.setTimeout(TgTimeoutKey.SESSION_CONNECT, arguments.getConnectionTimeoutMillis(), TimeUnit.MILLISECONDS);
+            sessionOption.setTimeout(TgTimeoutKey.SESSION_CONNECT, arguments.getConnectionTimeout(), TimeUnit.SECONDS);
             sessionOption.setKeepAlive(true);
         }
 
