@@ -18,6 +18,7 @@ package com.tsurugidb.mcp.server.tool;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -83,6 +84,8 @@ class GetTableMetadataToolTest extends TsurugiMcpTester {
                 assertEquals("INT", column.columnType());
                 assertEquals("NULL", column.constraint());
             }
+
+            assertEquals(List.of("c_id"), result.primaryKeys());
         }
     }
 }

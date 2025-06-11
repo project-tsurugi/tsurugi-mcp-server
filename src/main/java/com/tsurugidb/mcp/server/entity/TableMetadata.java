@@ -19,7 +19,7 @@ import java.util.List;
 
 import com.tsurugidb.iceaxe.metadata.TgTableMetadata;
 
-public record TableMetadata(String databaseName, String schemaName, String tableName, String tableDescription, List<SqlColumn> columns) {
+public record TableMetadata(String databaseName, String schemaName, String tableName, String tableDescription, List<SqlColumn> columns, List<String> primaryKeys) {
 
     public static TableMetadata of(TgTableMetadata metadata) {
         var columnList = metadata.getColumnList().stream().map(SqlColumn::of).toList();
@@ -28,6 +28,7 @@ public record TableMetadata(String databaseName, String schemaName, String table
                 metadata.getSchemaName(), //
                 metadata.getTableName(), //
                 metadata.getDescription(), //
-                columnList);
+                columnList, //
+                metadata.getPrimaryKeys());
     }
 }
