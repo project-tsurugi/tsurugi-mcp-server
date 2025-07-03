@@ -4,7 +4,7 @@
 
 ## Limitations
 
-- Tsurugi 1.4.0 or later.
+- Tsurugi 1.5.0 or later.
 - Java21 or later.
 
 ## Components
