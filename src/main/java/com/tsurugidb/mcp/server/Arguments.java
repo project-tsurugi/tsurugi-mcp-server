@@ -151,8 +151,8 @@ public class Arguments {
         this.noAuth = noAuth;
     }
 
-    public boolean getNoAuth() {
-        return (noAuth != null) && noAuth;
+    public Boolean getNoAuth() {
+        return noAuth;
     }
 
     // Tool

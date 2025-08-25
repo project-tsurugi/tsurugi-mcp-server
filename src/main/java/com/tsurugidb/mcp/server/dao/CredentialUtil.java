@@ -77,9 +77,9 @@ public class CredentialUtil {
             }
         }
 
-        boolean noAuth = arguments.getNoAuth();
+        Boolean noAuth = arguments.getNoAuth();
         LOG.debug("--no-auth={}", noAuth);
-        if (noAuth) {
+        if ((noAuth != null) && noAuth) {
             list.add(NullCredential.INSTANCE);
         }
 
