@@ -74,13 +74,12 @@ public class TsurugiMcpResource {
     }
 
     private SyncResourceSpecification tableSchemaResource(String tableName) {
-        var resource = new McpSchema.Resource( //
-                "tsurugidb://%s/schema".formatted(tableName), // uri
-                "%s table schema".formatted(tableName), // name
-                "'%s' table schema in Tsurugi database".formatted(tableName), // description
-                "application/json", // mimeType
-                null // annotations
-        );
+        var resource = McpSchema.Resource.builder() //
+                .uri("tsurugidb://%s/schema".formatted(tableName)) //
+                .name("%s table schema".formatted(tableName)) //
+                .description("'%s' table schema in Tsurugi database".formatted(tableName)) //
+                .mimeType("application/json") //
+                .build();
         return new SyncResourceSpecification(resource, this::tableSchema);
     }
 

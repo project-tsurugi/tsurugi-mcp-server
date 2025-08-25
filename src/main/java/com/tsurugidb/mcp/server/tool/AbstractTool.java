@@ -27,6 +27,7 @@ import com.tsurugidb.mcp.server.dao.SessionPool;
 import io.modelcontextprotocol.server.McpServerFeatures.SyncToolSpecification;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpSchema;
+import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 
 public abstract class AbstractTool {
@@ -59,11 +60,18 @@ public abstract class AbstractTool {
                 "object", // type
                 properties, // properties
                 requiredProperties, // required property
-                null // additionalProperties
-        );
+                null, // additionalProperties
+                null, null);
 
-        var tool = new McpSchema.Tool(toolName, description, schema);
-        return new SyncToolSpecification(tool, this::caller);
+        var tool = McpSchema.Tool.builder() //
+                .name(toolName) //
+                .description(description) //
+                .inputSchema(schema) //
+                .build();
+        return SyncToolSpecification.builder() //
+                .tool(tool) //
+                .callHandler(this::caller) //
+                .build();
     }
 
     public abstract String toolName();
@@ -84,9 +92,9 @@ public abstract class AbstractTool {
 
     protected abstract List<ToolProperty> properties();
 
-    private CallToolResult caller(McpSyncServerExchange exchange, Map<String, Object> arguments) {
+    private CallToolResult caller(McpSyncServerExchange exchange, CallToolRequest request) {
         try {
-            Object result = action(exchange, arguments);
+            Object result = action(exchange, request.arguments());
             if (result instanceof CallToolResult cr) {
                 return cr;
             }
