@@ -23,9 +23,18 @@ import com.tsurugidb.mcp.server.util.JsonUtil;
 public abstract class TsurugiMcpTester {
 
     private static final String SYSPROP_DBTEST_ENDPOINT = "tsurugi.dbtest.endpoint";
+    private static final String SYSPROP_DBTEST_USER = "tsurugi.dbtest.user";
+    private static final String SYSPROP_DBTEST_PASSWORD = "tsurugi.dbtest.password";
+    private static final String SYSPROP_DBTEST_AUTH_TOKEN = "tsurugi.dbtest.auth-token";
+    private static final String SYSPROP_DBTEST_CREDENTIALS = "tsurugi.dbtest.credentials";
+
     private static URI endpoint;
 
     protected static Arguments createTestArguments() {
+        return createTestArguments(true);
+    }
+
+    protected static Arguments createTestArguments(boolean withCredential) {
         var arguments = new Arguments();
 
         if (endpoint == null) {
@@ -35,7 +44,49 @@ public abstract class TsurugiMcpTester {
         }
         arguments.setConnectionUri(endpoint);
 
+        if (withCredential) {
+            String user = findUser();
+            if (user != null) {
+                arguments.setUser(user);
+                arguments.setPassword(findPassword());
+            } else {
+                String authToken = findAuthToken();
+                if (authToken != null) {
+                    arguments.setAuthToken(authToken);
+                } else {
+                    String credentials = findCredentials();
+                    if (credentials != null) {
+                        arguments.setCredentials(credentials);
+                    }
+                }
+            }
+        }
+
         return arguments;
+    }
+
+    public static String findUser() {
+        return getSystemProperty(SYSPROP_DBTEST_USER);
+    }
+
+    public static String findPassword() {
+        return getSystemProperty(SYSPROP_DBTEST_PASSWORD);
+    }
+
+    public static String findAuthToken() {
+        return getSystemProperty(SYSPROP_DBTEST_AUTH_TOKEN);
+    }
+
+    public static String findCredentials() {
+        return getSystemProperty(SYSPROP_DBTEST_CREDENTIALS);
+    }
+
+    private static String getSystemProperty(String key) {
+        String value = System.getProperty(key);
+        if (value != null && value.isEmpty()) {
+            return null;
+        }
+        return value;
     }
 
     protected static ObjectMapper createObjectMapper() {

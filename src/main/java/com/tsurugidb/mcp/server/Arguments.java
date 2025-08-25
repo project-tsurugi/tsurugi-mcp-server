@@ -31,12 +31,19 @@ public class Arguments {
     private URI connectionUri;
     private String connectionLabel = TsurugiMcpServer.SERVER_NAME;
     private long connectionTimeout = 30;
+    private String user;
+    private String password;
+    private String authToken;
+    private String credentials;
+    private Boolean noAuth;
     private List<String> enableToolList = TsurugiMcpTool.toolNames();
     private List<String> disableToolList = new ArrayList<>();
     private boolean resourceEnable = true;
     private boolean promptEnable = true;
     private int responseLimistSize = 10 * 1024;
     private boolean printHelp;
+
+    // Connection
 
     @Parameter(order = 10, //
             names = { "-c", "--connection" }, //
@@ -54,7 +61,8 @@ public class Arguments {
 
     @Parameter(order = 11, //
             names = { "--connection-label" }, //
-            arity = 1, description = "Tsurugi connection session label.", //
+            arity = 1, //
+            description = "Tsurugi connection session label.", //
             required = false)
     public void setConnectionLabel(String label) {
         this.connectionLabel = label;
@@ -80,6 +88,75 @@ public class Arguments {
         return connectionTimeout;
     }
 
+    // Credential
+
+    @Parameter(order = 21, //
+            names = { "--user", "-u" }, //
+            arity = 1, //
+            description = "user", //
+            required = false)
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    @Parameter(order = 22, //
+            names = { "--password" }, //
+            arity = 1, //
+            description = "password for user", //
+            required = false)
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    @Parameter(order = 23, //
+            names = { "--auth-token" }, //
+            arity = 1, //
+            description = "auth token", //
+            required = false)
+    public void setAuthToken(String token) {
+        this.authToken = token;
+    }
+
+    public String getAuthToken() {
+        return authToken;
+    }
+
+    @Parameter(order = 24, //
+            names = { "--credentials" }, //
+            arity = 1, //
+            description = "path to credential file", //
+            required = false)
+    public void setCredentials(String path) {
+        this.credentials = path;
+    }
+
+    public String getCredentials() {
+        return credentials;
+    }
+
+    @Parameter(order = 25, //
+            names = { "--no-auth" }, //
+            arity = 0, //
+            description = "no auth", //
+            required = false)
+    public void setNoAuth(Boolean noAuth) {
+        this.noAuth = noAuth;
+    }
+
+    public boolean getNoAuth() {
+        return (noAuth != null) && noAuth;
+    }
+
+    // Tool
+
     public static class ToolNameValidator implements IParameterValidator {
         @Override
         public void validate(String name, String value) throws ParameterException {
@@ -104,7 +181,7 @@ public class Arguments {
         return list;
     }
 
-    @Parameter(order = 20, //
+    @Parameter(order = 30, //
             names = { "--enable-tools" }, //
             arity = 1, //
             description = "Enable tools (default is all tools)", //
@@ -118,7 +195,7 @@ public class Arguments {
         return this.enableToolList;
     }
 
-    @Parameter(order = 21, //
+    @Parameter(order = 31, //
             names = { "--disable-tools" }, //
             arity = 1, //
             description = "Disable tools", //
@@ -132,7 +209,9 @@ public class Arguments {
         return this.disableToolList;
     }
 
-    @Parameter(order = 31, //
+    // Resource
+
+    @Parameter(order = 41, //
             names = { "--resource" }, //
             arity = 1, //
             description = "true: Enable resource", //
@@ -145,7 +224,9 @@ public class Arguments {
         return this.resourceEnable;
     }
 
-    @Parameter(order = 41, //
+    // Prompt
+
+    @Parameter(order = 51, //
             names = { "--prompt" }, //
             arity = 1, //
             description = "true: Enable prompt", //
@@ -157,6 +238,8 @@ public class Arguments {
     public boolean isPrompt() {
         return this.promptEnable;
     }
+
+    // Response
 
     @Parameter(order = 90, //
             names = { "--response-limit-size" }, //
@@ -170,6 +253,8 @@ public class Arguments {
     public int getResponseLimitSize() {
         return this.responseLimistSize;
     }
+
+    // Help
 
     @Parameter(order = 10000, //
             names = { "-h", "--help" }, //

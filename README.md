@@ -65,7 +65,8 @@ To use this server with the [Claude Desktop](https://claude.ai/download), add th
       "args": [
         "-jar",
         "/path/to/tsurugi-mcp-server-all.jar",
-        "-c", "tcp://localhost:12345"
+        "-c", "tcp://localhost:12345",
+        "--credentials", "/path/to/credential-file"
       ]
     }
   }
@@ -77,6 +78,15 @@ To use this server with the [Claude Desktop](https://claude.ai/download), add th
 - `args`
   - Specify the jar file by full path.
   - `-c` or `--connection` - the endpoint URL to connect Tsurugi. (required)
+  - Specify one of the following credentials.
+    - `"--user", "user"` and `"--password", "password"`
+    - `"--auth-token", "auth token"`
+    - `"--credentials", "/path/to/credential-file"`
+    - `"--no-auth"`
+    - If none of these are specified, authentication will be performed in the following order of priority.
+      1. If `TSURUGI_AUTH_TOKEN` is specified in `env`, authenticate using it as the auth token.
+      2. If a default credential file (`USER_HOME/.tsurugidb/credentials.json`) exists, use it for authentication.
+      3. Authenticate without authentication.
   - If you want to limit the tools used, add `--enable-tools`. (e.g., for read-only access: `"--enable-tools", "listTableNames, getTableMetadata, query"`)
   - If resources is not used, add `"--resource", "false"`.
   - If prompts is not used, add `"--prompt", "false"`.
@@ -93,7 +103,11 @@ ls build/libs/
 
 ```bash
 cd tsurugi-mcp-server
-./gradlew test -Pdbtest.endpoint=tcp://localhost:12345
+./gradlew test -Pdbtest.endpoint=tcp://localhost:12345 \
+-Pdbtest.user=user \
+-Pdbtest.password=password \
+-Pdbtest.auth-token=token \
+-Pdbtest.credentials=/path/to/credential-file
 ```
 
 ## License

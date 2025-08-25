@@ -40,7 +40,8 @@ public class SessionPool implements AutoCloseable {
 
     public static SessionPool create(Arguments arguments) {
         URI endpoint = arguments.getConnectionUri();
-        var connector = TsurugiConnector.of(endpoint);
+        var credential = CredentialUtil.getCredential(arguments);
+        var connector = TsurugiConnector.of(endpoint, credential);
         LOG.debug("connector={}", connector);
 
         var sessionOption = TgSessionOption.of();
