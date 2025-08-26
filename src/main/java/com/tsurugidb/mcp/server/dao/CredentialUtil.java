@@ -36,8 +36,6 @@ import com.tsurugidb.tsubakuro.channel.common.connection.UsernamePasswordCredent
 public class CredentialUtil {
     private static final Logger LOG = LoggerFactory.getLogger(CredentialUtil.class);
 
-    private static final String TSURUGI_HIDDEN_DIR = ".tsurugidb"; //$NON-NLS-1$
-
     public static Credential getCredential(Arguments arguments) {
         var list = getCredentialList(arguments);
         switch (list.size()) {
@@ -95,9 +93,7 @@ public class CredentialUtil {
             return new RememberMeCredential(authToken);
         }
 
-        var pathOpt = Optional.ofNullable(System.getProperty("user.home")) //
-                .map(home -> Path.of(home, TSURUGI_HIDDEN_DIR, "credentials.json")) //
-                .filter(path -> Files.exists(path));
+        var pathOpt = FileCredential.DEFAULT_CREDENTIAL_PATH.filter(path -> Files.exists(path));
         if (pathOpt.isPresent()) {
             Path path = pathOpt.get();
             LOG.debug("default.credentials={}", path);
