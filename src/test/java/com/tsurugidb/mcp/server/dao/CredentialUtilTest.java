@@ -16,6 +16,7 @@
 package com.tsurugidb.mcp.server.dao;
 
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.net.URI;
@@ -64,7 +65,9 @@ class CredentialUtilTest extends TsurugiMcpTester {
 
     private void connectTest(Arguments arguments) throws IOException, InterruptedException {
         URI endpoint = arguments.getConnectionUri();
-        var credential = CredentialUtil.getCredential(arguments);
+        var credentialList = CredentialUtil.getCredential(arguments);
+        assertEquals(1, credentialList.size());
+        var credential = credentialList.getFirst();
         var connector = TsurugiConnector.of(endpoint, credential);
 
         try (var session = connector.createSession()) {

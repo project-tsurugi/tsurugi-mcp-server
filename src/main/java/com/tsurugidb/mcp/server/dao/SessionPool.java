@@ -18,7 +18,9 @@ package com.tsurugidb.mcp.server.dao;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -28,11 +30,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.iceaxe.TsurugiConnector;
+import com.tsurugidb.iceaxe.exception.TsurugiIOException;
 import com.tsurugidb.iceaxe.session.TgSessionOption;
 import com.tsurugidb.iceaxe.session.TgSessionOption.TgTimeoutKey;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.mcp.server.Arguments;
+import com.tsurugidb.tsubakuro.channel.common.connection.Credential;
 import com.tsurugidb.tsubakuro.common.Session;
+import com.tsurugidb.tsubakuro.exception.CoreServiceCode;
 import com.tsurugidb.tsubakuro.util.FutureResponse;
 
 public class SessionPool implements AutoCloseable {
@@ -40,16 +45,16 @@ public class SessionPool implements AutoCloseable {
 
     public static SessionPool create(Arguments arguments) {
         URI endpoint = arguments.getConnectionUri();
-        var credential = CredentialUtil.getCredential(arguments);
-        var connector = TsurugiConnector.of(endpoint, credential);
-        LOG.debug("connector={}", connector);
-
+        var credentialList = CredentialUtil.getCredential(arguments);
         var sessionOption = TgSessionOption.of();
         {
             sessionOption.setLabel(arguments.getConnectionLabel());
             sessionOption.setTimeout(TgTimeoutKey.SESSION_CONNECT, arguments.getConnectionTimeout(), TimeUnit.SECONDS);
             sessionOption.setKeepAlive(true);
         }
+
+        var connector = getConnector(endpoint, credentialList, sessionOption);
+        LOG.debug("connector={}", connector);
 
         var pool = new SessionPool(connector, sessionOption);
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -61,6 +66,40 @@ public class SessionPool implements AutoCloseable {
             }
         });
         return pool;
+    }
+
+    private static TsurugiConnector getConnector(URI endpoint, List<Credential> credentialList, TgSessionOption sessionOption) {
+        var attemptFailures = new ArrayList<IOException>();
+        for (var credential : credentialList) {
+            var c = TsurugiConnector.of(endpoint, credential);
+            try (var session = c.createSession(sessionOption)) {
+                session.getLowSession();
+                return c;
+            } catch (TsurugiIOException e) {
+                var code = e.getDiagnosticCode();
+                if (code == CoreServiceCode.AUTHENTICATION_ERROR || code == CoreServiceCode.INVALID_REQUEST) {
+                    LOG.debug("authentication error in connection attempt. {}: {}", credential, e.getMessage());
+                    attemptFailures.add(e);
+                    continue;
+                }
+                throw new UncheckedIOException(e.getMessage(), e);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e.getMessage(), e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if (attemptFailures.isEmpty()) {
+            throw new RuntimeException("connect error");
+        }
+
+        var last = attemptFailures.getLast();
+        var e = new RuntimeException("connect error", last);
+        for (var s : attemptFailures.subList(0, attemptFailures.size() - 1)) {
+            e.addSuppressed(s);
+        }
+        throw e;
     }
 
     private final TsurugiConnector connector;

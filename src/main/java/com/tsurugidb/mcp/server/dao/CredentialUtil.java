@@ -36,13 +36,13 @@ import com.tsurugidb.tsubakuro.channel.common.connection.UsernamePasswordCredent
 public class CredentialUtil {
     private static final Logger LOG = LoggerFactory.getLogger(CredentialUtil.class);
 
-    public static Credential getCredential(Arguments arguments) {
+    public static List<Credential> getCredential(Arguments arguments) {
         var list = getCredentialList(arguments);
         switch (list.size()) {
         case 0:
             return getDefaultCredential();
         case 1:
-            return list.get(0);
+            return list;
         default:
             throw new RuntimeException("specify only one of [--user, --auth-token, --credentials, --no-auth]");
         }
@@ -59,7 +59,7 @@ public class CredentialUtil {
         }
 
         String authToken = arguments.getAuthToken();
-        LOG.debug("--auth-token={}", authToken);
+        LOG.debug("--auth-token={}", debugAuthToken(authToken));
         if (authToken != null) {
             list.add(new RememberMeCredential(authToken));
         }
@@ -84,13 +84,15 @@ public class CredentialUtil {
         return list;
     }
 
-    private static Credential getDefaultCredential() {
+    private static List<Credential> getDefaultCredential() {
+        var result = new ArrayList<Credential>();
+
         var tokenOpt = Optional.ofNullable(System.getenv("TSURUGI_AUTH_TOKEN")) //
                 .filter(token -> !token.isEmpty());
         if (tokenOpt.isPresent()) {
             String authToken = tokenOpt.get();
-            LOG.debug("TSURUGI_AUTH_TOKEN={}", authToken);
-            return new RememberMeCredential(authToken);
+            LOG.debug("TSURUGI_AUTH_TOKEN={}", debugAuthToken(authToken));
+            result.add(new RememberMeCredential(authToken));
         }
 
         var pathOpt = FileCredential.DEFAULT_CREDENTIAL_PATH.filter(path -> Files.exists(path));
@@ -98,13 +100,22 @@ public class CredentialUtil {
             Path path = pathOpt.get();
             LOG.debug("default.credentials={}", path);
             try {
-                return FileCredential.load(path);
+                result.add(FileCredential.load(path));
             } catch (IOException e) {
-                throw new UncheckedIOException(e.getMessage(), e);
+                LOG.warn("error occurred while loading the default credential file", e);
             }
         }
 
-        LOG.debug("default.NullCredential");
-        return NullCredential.INSTANCE;
+        result.add(NullCredential.INSTANCE);
+
+        return result;
+    }
+
+    private static String debugAuthToken(String authToken) {
+        if (authToken != null) {
+            return authToken.substring(0, Math.min(authToken.length(), 16)) + "****";
+        } else {
+            return null;
+        }
     }
 }
