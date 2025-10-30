@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.tsurugidb.mcp'
-version = '0.4.0-SNAPSHOT'
+version = '0.4.0'
 
 java {
 	toolchain {
@@ -39,7 +39,7 @@ repositories {
 
 dependencies {
     implementation 'io.modelcontextprotocol.sdk:mcp:0.11.2'
-    implementation 'com.tsurugidb.iceaxe:iceaxe-core:1.12.0-SNAPSHOT'
+    implementation 'com.tsurugidb.iceaxe:iceaxe-core:1.12.0'
     implementation 'com.beust:jcommander:1.82'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0'
     implementation "org.slf4j:slf4j-simple:2.0.17"
