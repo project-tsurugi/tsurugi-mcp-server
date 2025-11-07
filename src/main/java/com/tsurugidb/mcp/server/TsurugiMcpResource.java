@@ -24,11 +24,11 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 import com.tsurugidb.mcp.server.entity.TableMetadata;
 
+import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.server.McpServerFeatures.SyncResourceSpecification;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -39,12 +39,12 @@ import io.modelcontextprotocol.spec.McpSchema.TextResourceContents;
 public class TsurugiMcpResource {
     private static final Logger LOG = LoggerFactory.getLogger(TsurugiMcpResource.class);
 
-    private final ObjectMapper objectMapper;
+    private final McpJsonMapper jsonMapper;
     private final Arguments arguments;
     private final SessionPool pool;
 
-    public TsurugiMcpResource(ObjectMapper objectMapper, Arguments arguments, SessionPool pool) {
-        this.objectMapper = objectMapper;
+    public TsurugiMcpResource(McpJsonMapper jsonMapper, Arguments arguments, SessionPool pool) {
+        this.jsonMapper = jsonMapper;
         this.arguments = arguments;
         this.pool = pool;
     }
@@ -88,7 +88,7 @@ public class TsurugiMcpResource {
             String uri = request.uri();
             var metadata = tableSchemaMain(uri);
 
-            String text = objectMapper.writeValueAsString(metadata);
+            String text = jsonMapper.writeValueAsString(metadata);
             var content = new TextResourceContents(request.uri(), "application/json", text);
             return new ReadResourceResult(List.of(content));
         } catch (RuntimeException e) {

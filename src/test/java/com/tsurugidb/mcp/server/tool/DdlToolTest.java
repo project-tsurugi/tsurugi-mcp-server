@@ -58,7 +58,7 @@ class DdlToolTest extends TsurugiMcpTester {
         var arguments = createTestArguments();
         try (var pool = SessionPool.create(arguments)) {
             var target = new DdlTool();
-            target.initialize(createObjectMapper(), arguments, pool);
+            target.initialize(createJsonMapper(), arguments, pool);
 
             var args = new HashMap<String, Object>();
             args.put(DdlTool.SQL, "create table mcp_example (pk int primary key)");

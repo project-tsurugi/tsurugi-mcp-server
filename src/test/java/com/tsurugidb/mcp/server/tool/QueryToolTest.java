@@ -95,7 +95,7 @@ class QueryToolTest extends TsurugiMcpTester {
         var arguments = createTestArguments();
         try (var pool = SessionPool.create(arguments)) {
             var target = new QueryTool();
-            target.initialize(createObjectMapper(), arguments, pool);
+            target.initialize(createJsonMapper(), arguments, pool);
 
             String cursor;
             var list = new ArrayList<Map<String, Object>>(SIZE);
@@ -150,7 +150,7 @@ class QueryToolTest extends TsurugiMcpTester {
 
                 try {
                     var target = new QueryTool();
-                    target.initialize(createObjectMapper(), arguments, pool);
+                    target.initialize(createJsonMapper(), arguments, pool);
 
                     var args = new HashMap<String, Object>();
                     args.put(QueryTool.SQL, "select * from customer order by c_id");

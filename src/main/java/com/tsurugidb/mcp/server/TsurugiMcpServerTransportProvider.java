@@ -15,10 +15,10 @@
  */
 package com.tsurugidb.mcp.server;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
+import io.modelcontextprotocol.json.McpJsonMapper;
+import io.modelcontextprotocol.json.TypeRef;
 import io.modelcontextprotocol.server.transport.StdioServerTransportProvider;
 import io.modelcontextprotocol.spec.McpSchema.JSONRPCMessage;
 import io.modelcontextprotocol.spec.McpServerSession;
@@ -29,8 +29,8 @@ public class TsurugiMcpServerTransportProvider extends StdioServerTransportProvi
 
     private final SessionPool pool;
 
-    public TsurugiMcpServerTransportProvider(ObjectMapper objectMapper, SessionPool pool) {
-        super(objectMapper);
+    public TsurugiMcpServerTransportProvider(McpJsonMapper jsonMapper, SessionPool pool) {
+        super(jsonMapper);
         this.pool = pool;
     }
 
@@ -47,7 +47,7 @@ public class TsurugiMcpServerTransportProvider extends StdioServerTransportProvi
                     }
 
                     @Override
-                    public <T> T unmarshalFrom(Object data, TypeReference<T> typeRef) {
+                    public <T> T unmarshalFrom(Object data, TypeRef<T> typeRef) {
                         return sessionTransport.unmarshalFrom(data, typeRef);
                     }
 

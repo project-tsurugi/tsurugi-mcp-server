@@ -15,9 +15,9 @@
  */
 package com.tsurugidb.mcp.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
+import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpSyncServer;
 import io.modelcontextprotocol.spec.McpSchema.ServerCapabilities;
@@ -28,9 +28,9 @@ public class TsurugiMcpServer {
     public static final String SERVER_NAME = "tsurugi-mcp-server";
     public static final String SERVER_VERSION = "0.5.0-SNAPSHOT";
 
-    public static McpSyncServer syncServer(McpServerTransportProvider transportProvider, ObjectMapper objectMapper, Arguments arguments, SessionPool pool) {
-        var tools = TsurugiMcpTool.syncTools(objectMapper, arguments, pool);
-        var resources = new TsurugiMcpResource(objectMapper, arguments, pool).syncResources();
+    public static McpSyncServer syncServer(McpServerTransportProvider transportProvider, McpJsonMapper jsonMapper, Arguments arguments, SessionPool pool) {
+        var tools = TsurugiMcpTool.syncTools(jsonMapper, arguments, pool);
+        var resources = new TsurugiMcpResource(jsonMapper, arguments, pool).syncResources();
         var prompts = new TsurugiMcpPrompt(arguments).syncPrompts();
 
         var capabilities = ServerCapabilities.builder();

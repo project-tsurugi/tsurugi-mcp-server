@@ -17,8 +17,9 @@ package com.tsurugidb.mcp.server;
 
 import java.net.URI;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsurugidb.mcp.server.util.JsonUtil;
+
+import io.modelcontextprotocol.json.McpJsonMapper;
 
 public abstract class TsurugiMcpTester {
 
@@ -89,7 +90,7 @@ public abstract class TsurugiMcpTester {
         return value;
     }
 
-    protected static ObjectMapper createObjectMapper() {
-        return JsonUtil.createObjectMapper();
+    protected static McpJsonMapper createJsonMapper() {
+        return JsonUtil.createJsonMapper();
     }
 }

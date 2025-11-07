@@ -38,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.modelcontextprotocol.sdk:mcp:0.11.2'
+    implementation 'io.modelcontextprotocol.sdk:mcp:0.15.0'
     implementation 'com.tsurugidb.iceaxe:iceaxe-core:1.13.0-SNAPSHOT'
     implementation 'com.beust:jcommander:1.82'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0'
@@ -46,7 +46,7 @@ dependencies {
 
     testImplementation platform('org.junit:junit-bom:5.12.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'io.modelcontextprotocol.sdk:mcp-test:0.8.1'
+    testImplementation 'io.modelcontextprotocol.sdk:mcp-test:0.15.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

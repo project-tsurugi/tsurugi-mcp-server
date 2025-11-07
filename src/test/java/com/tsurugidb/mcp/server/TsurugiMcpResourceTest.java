@@ -45,7 +45,7 @@ class TsurugiMcpResourceTest extends TsurugiMcpTester {
                         """);
             }
 
-            var target = new TsurugiMcpResource(createObjectMapper(), arguments, pool);
+            var target = new TsurugiMcpResource(createJsonMapper(), arguments, pool);
 
             var result = target.tableSchemaMain("tsurugidb://r_customer/schema");
 

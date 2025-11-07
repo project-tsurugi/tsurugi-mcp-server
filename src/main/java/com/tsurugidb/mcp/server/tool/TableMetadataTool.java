@@ -22,7 +22,6 @@ import java.util.Map;
 import com.tsurugidb.mcp.server.entity.TableMetadata;
 
 import io.modelcontextprotocol.server.McpSyncServerExchange;
-import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 
 public class TableMetadataTool extends AbstractTool {
@@ -51,8 +50,8 @@ public class TableMetadataTool extends AbstractTool {
         try (var session = pool.getSession()) {
             var opt = session.findTableMetadata(tableName);
             if (opt.isEmpty()) {
-                var content = new McpSchema.TextContent(MessageFormat.format("table not found. specified table name: {0}", tableName));
-                return new CallToolResult(List.of(content), true);
+                String text = MessageFormat.format("table not found. specified table name: {0}", tableName);
+                return CallToolResult.builder().addTextContent(text).isError(true).build();
             }
             var metadata = TableMetadata.of(opt.get());
 

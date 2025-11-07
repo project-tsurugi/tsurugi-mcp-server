@@ -51,7 +51,7 @@ class GetTableMetadataToolTest extends TsurugiMcpTester {
             }
 
             var target = new TableMetadataTool();
-            target.initialize(createObjectMapper(), arguments, pool);
+            target.initialize(createJsonMapper(), arguments, pool);
 
             var args = new HashMap<String, Object>();
             args.put(TableMetadataTool.TABLE_NAME, "customer");

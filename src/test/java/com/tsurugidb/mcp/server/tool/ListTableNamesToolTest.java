@@ -39,7 +39,7 @@ class ListTableNamesToolTest extends TsurugiMcpTester {
             }
 
             var target = new TableNamesTool();
-            target.initialize(createObjectMapper(), arguments, pool);
+            target.initialize(createJsonMapper(), arguments, pool);
 
             var args = new HashMap<String, Object>();
             List<TableName> result = target.action(null, args);

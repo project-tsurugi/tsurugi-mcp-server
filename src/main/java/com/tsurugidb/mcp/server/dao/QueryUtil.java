@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsurugidb.iceaxe.exception.TsurugiExceptionUtil;
 import com.tsurugidb.iceaxe.session.TsurugiSession;
 import com.tsurugidb.iceaxe.sql.TsurugiSqlQuery;
@@ -45,18 +44,20 @@ import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.iceaxe.util.InterruptedRuntimeException;
 import com.tsurugidb.mcp.server.Arguments;
 
+import io.modelcontextprotocol.json.McpJsonMapper;
+
 public class QueryUtil {
     private static final Logger LOG = LoggerFactory.getLogger(QueryUtil.class);
 
     private static final AtomicInteger QUERY_ID = new AtomicInteger();
 
-    private final ObjectMapper objectMapper;
+    private final McpJsonMapper jsonMapper;
     private final SessionPool pool;
     private final int limitSize;
     private final Map<String, QueryCache> queryMap = new ConcurrentHashMap<>();
 
-    public QueryUtil(ObjectMapper objectMapper, Arguments arguments, SessionPool pool) {
-        this.objectMapper = objectMapper;
+    public QueryUtil(McpJsonMapper jsonMapper, Arguments arguments, SessionPool pool) {
+        this.jsonMapper = jsonMapper;
         this.pool = pool;
         this.limitSize = arguments.getResponseLimitSize();
     }
@@ -150,7 +151,7 @@ public class QueryUtil {
                             Object value = convert(record.getValueOrNull(j));
                             map.put(name, value);
                         }
-                        String text = objectMapper.writeValueAsString(map);
+                        String text = jsonMapper.writeValueAsString(map);
 //                      int estimateSize = text.length() + 8;
                         int estimateSize = text.getBytes(StandardCharsets.UTF_8).length + 8;
                         if (estimateTotalSize + estimateSize >= limitSize) {

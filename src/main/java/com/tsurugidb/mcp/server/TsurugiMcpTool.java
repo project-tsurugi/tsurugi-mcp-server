@@ -21,15 +21,15 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 import com.tsurugidb.mcp.server.tool.AbstractTool;
 import com.tsurugidb.mcp.server.tool.DdlTool;
+import com.tsurugidb.mcp.server.tool.QueryTool;
 import com.tsurugidb.mcp.server.tool.TableMetadataTool;
 import com.tsurugidb.mcp.server.tool.TableNamesTool;
-import com.tsurugidb.mcp.server.tool.QueryTool;
 import com.tsurugidb.mcp.server.tool.UpdateTool;
 
+import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.server.McpServerFeatures.SyncToolSpecification;
 
 public class TsurugiMcpTool {
@@ -47,7 +47,7 @@ public class TsurugiMcpTool {
         return TOOLS.stream().map(AbstractTool::toolName).toList();
     }
 
-    public static List<SyncToolSpecification> syncTools(ObjectMapper objectMapper, Arguments arguments, SessionPool pool) {
+    public static List<SyncToolSpecification> syncTools(McpJsonMapper jsonMapper, Arguments arguments, SessionPool pool) {
         var set = new HashSet<>(arguments.getEnableToolList());
         for (String name : arguments.getDisableToolList()) {
             set.remove(name);
@@ -56,7 +56,7 @@ public class TsurugiMcpTool {
 
         return TOOLS.stream() //
                 .filter(t -> set.contains(t.toolName())) //
-                .peek(t -> t.initialize(objectMapper, arguments, pool)) //
+                .peek(t -> t.initialize(jsonMapper, arguments, pool)) //
                 .map(AbstractTool::syncTool) //
                 .toList();
     }

@@ -20,10 +20,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsurugidb.mcp.server.Arguments;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
+import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.server.McpServerFeatures.SyncToolSpecification;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -32,11 +32,11 @@ import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 
 public abstract class AbstractTool {
 
-    protected ObjectMapper objectMapper;
+    protected McpJsonMapper jsonMapper;
     protected SessionPool pool;
 
-    public void initialize(ObjectMapper objectMapper, Arguments arguments, SessionPool pool) {
-        this.objectMapper = objectMapper;
+    public void initialize(McpJsonMapper jsonMapper, Arguments arguments, SessionPool pool) {
+        this.jsonMapper = jsonMapper;
         this.pool = pool;
     }
 
@@ -99,9 +99,8 @@ public abstract class AbstractTool {
                 return cr;
             }
 
-            String text = objectMapper.writeValueAsString(result);
-            var content = new McpSchema.TextContent(text);
-            return new CallToolResult(List.of(content), false);
+            String text = jsonMapper.writeValueAsString(result);
+            return CallToolResult.builder().addTextContent(text).build();
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

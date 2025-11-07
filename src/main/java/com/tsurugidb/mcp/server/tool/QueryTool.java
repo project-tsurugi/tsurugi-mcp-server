@@ -18,13 +18,13 @@ package com.tsurugidb.mcp.server.tool;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.mcp.server.Arguments;
 import com.tsurugidb.mcp.server.dao.QueryUtil;
 import com.tsurugidb.mcp.server.dao.QueryUtil.QueryResult;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
+import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 
 public class QueryTool extends AbstractTool {
@@ -32,10 +32,10 @@ public class QueryTool extends AbstractTool {
     private QueryUtil queryUtil;
 
     @Override
-    public void initialize(ObjectMapper objectMapper, Arguments arguments, SessionPool pool) {
-        super.initialize(objectMapper, arguments, pool);
+    public void initialize(McpJsonMapper jsonMapper, Arguments arguments, SessionPool pool) {
+        super.initialize(jsonMapper, arguments, pool);
 
-        this.queryUtil = new QueryUtil(objectMapper, arguments, pool);
+        this.queryUtil = new QueryUtil(jsonMapper, arguments, pool);
     }
 
     @Override

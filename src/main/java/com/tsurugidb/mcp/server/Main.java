@@ -45,11 +45,11 @@ public class Main {
     }
 
     public void main(Arguments arguments) {
-        var objectMapper = JsonUtil.createObjectMapper();
+        var jsonMapper = JsonUtil.createJsonMapper();
         var pool = SessionPool.create(arguments);
 
-        var transportProvider = new TsurugiMcpServerTransportProvider(objectMapper, pool);
-        McpSyncServer server = TsurugiMcpServer.syncServer(transportProvider, objectMapper, arguments, pool);
+        var transportProvider = new TsurugiMcpServerTransportProvider(jsonMapper, pool);
+        McpSyncServer server = TsurugiMcpServer.syncServer(transportProvider, jsonMapper, arguments, pool);
         LOG.info("serverInfo={}", server.getServerInfo());
     }
 }

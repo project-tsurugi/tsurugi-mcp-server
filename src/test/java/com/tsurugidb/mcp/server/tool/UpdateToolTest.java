@@ -54,7 +54,7 @@ class UpdateToolTest extends TsurugiMcpTester {
         var arguments = createTestArguments();
         try (var pool = SessionPool.create(arguments)) {
             var target = new UpdateTool();
-            target.initialize(createObjectMapper(), arguments, pool);
+            target.initialize(createJsonMapper(), arguments, pool);
 
             var args = new HashMap<String, Object>();
             args.put(UpdateTool.SQL, "update mcp_example set value=111 where pk=1");
@@ -70,7 +70,7 @@ class UpdateToolTest extends TsurugiMcpTester {
         var arguments = createTestArguments();
         try (var pool = SessionPool.create(arguments)) {
             var target = new UpdateTool();
-            target.initialize(createObjectMapper(), arguments, pool);
+            target.initialize(createJsonMapper(), arguments, pool);
 
             var args = new HashMap<String, Object>();
             args.put(UpdateTool.SQL, "update mcp_example set value=222 where pk=2");
@@ -87,7 +87,7 @@ class UpdateToolTest extends TsurugiMcpTester {
         var arguments = createTestArguments();
         try (var pool = SessionPool.create(arguments)) {
             var target = new UpdateTool();
-            target.initialize(createObjectMapper(), arguments, pool);
+            target.initialize(createJsonMapper(), arguments, pool);
 
             var args = new HashMap<String, Object>();
             args.put(UpdateTool.SQL, "update mcp_example set value=333 where pk=3");
