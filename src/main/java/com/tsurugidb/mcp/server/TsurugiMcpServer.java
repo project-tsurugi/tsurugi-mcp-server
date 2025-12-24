@@ -26,7 +26,7 @@ import io.modelcontextprotocol.spec.McpServerTransportProvider;
 public class TsurugiMcpServer {
 
     public static final String SERVER_NAME = "tsurugi-mcp-server";
-    public static final String SERVER_VERSION = "0.5.0";
+    public static final String SERVER_VERSION = "0.6.0-SNAPSHOT";
 
     public static McpSyncServer syncServer(McpServerTransportProvider transportProvider, McpJsonMapper jsonMapper, Arguments arguments, SessionPool pool) {
         var tools = TsurugiMcpTool.syncTools(jsonMapper, arguments, pool);
