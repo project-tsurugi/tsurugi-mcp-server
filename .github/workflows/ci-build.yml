@@ -42,13 +42,13 @@ jobs:
           GLOG_v: ${{ inputs.tsurugi_loglevel || 30 }}
     steps:
       - name: Setup_Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Assemble
         run: |
@@ -59,7 +59,7 @@ jobs:
           ./gradlew check -Pdbtest.endpoint=${{ env.DBTEST_ENDPOINT }} --continue --warning-mode all
 
       - name: Verify
-        uses: project-tsurugi/tsurugi-annotations-action@v1
+        uses: project-tsurugi/tsurugi-annotations-action@v2
         if: always()
         with:
           junit_input: '**/build/test-results/**/TEST-*.xml'
@@ -67,7 +67,7 @@ jobs:
           checkstyle_input: '**/build/reports/checkstyle/main.xml'
 
       - name: Upload_ShadowJar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tsurugi-mcp-server-all.jar
           path: build/libs/tsurugi-mcp-server-all.jar
