@@ -117,7 +117,7 @@ public class QueryUtil {
                     throw new RuntimeException(e);
                 }
             } catch (Exception e) {
-                LOG.warn("QueryCache.initialize error", e);
+                LOG.warn("QueryCache.initialize error: {}", e.toString());
                 this.finish = true;
                 throw e;
             }
@@ -183,7 +183,7 @@ public class QueryUtil {
                 String nextCursor = this.finish ? null : "query" + queryId;
                 return new QueryResult(list, hasMore, nextCursor, serializationFauluerMessage);
             } catch (Exception e) {
-                LOG.warn("QueryCache.execute error", e);
+                LOG.warn("QueryCache.execute error: {}", e.toString());
                 this.finish = true;
                 throw e;
             }

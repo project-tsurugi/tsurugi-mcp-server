@@ -21,8 +21,8 @@ import java.util.Map;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.mcp.server.Arguments;
 import com.tsurugidb.mcp.server.dao.QueryUtil;
-import com.tsurugidb.mcp.server.dao.QueryUtil.QueryResult;
 import com.tsurugidb.mcp.server.dao.SessionPool;
+import com.tsurugidb.mcp.server.util.ExceptionUtil;
 
 import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
@@ -62,12 +62,17 @@ public class QueryTool extends AbstractTool {
     }
 
     @Override
-    protected QueryResult action(McpSyncServerExchange exchange, Map<String, Object> arguments) throws Exception {
-        String sql = (String) arguments.get(SQL);
-        var txOption = getTransactionOption(arguments);
-        String cursor = (String) arguments.get(CURSOR);
+    protected Object action(McpSyncServerExchange exchange, Map<String, Object> arguments) throws Exception {
+        try {
+            String sql = (String) arguments.get(SQL);
+            var txOption = getTransactionOption(arguments);
+            String cursor = (String) arguments.get(CURSOR);
 
-        return queryUtil.execute(sql, txOption, cursor);
+            return queryUtil.execute(sql, txOption, cursor);
+        } catch (Exception e) {
+            LOG.warn("Failed to execute query", e);
+            return ExceptionUtil.createErrorToolResult(e);
+        }
     }
 
     TgTxOption getTransactionOption(Map<String, Object> arguments) {

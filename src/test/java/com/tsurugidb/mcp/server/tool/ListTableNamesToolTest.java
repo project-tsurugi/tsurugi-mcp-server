@@ -42,7 +42,8 @@ class ListTableNamesToolTest extends TsurugiMcpTester {
             target.initialize(createJsonMapper(), arguments, pool);
 
             var args = new HashMap<String, Object>();
-            List<TableName> result = target.action(null, args);
+            @SuppressWarnings("unchecked")
+            var result = (List<TableName>) target.action(null, args);
 
             assertTrue(result.stream().anyMatch(t -> t.tableName().equals("mcp_test")));
         }

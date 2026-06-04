@@ -20,6 +20,7 @@ import java.util.Map;
 
 import com.tsurugidb.iceaxe.transaction.TgCommitType;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
+import com.tsurugidb.mcp.server.util.ExceptionUtil;
 
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 
@@ -47,7 +48,7 @@ public class DdlTool extends AbstractTool {
     }
 
     @Override
-    protected String action(McpSyncServerExchange exchange, Map<String, Object> arguments) throws Exception {
+    protected Object action(McpSyncServerExchange exchange, Map<String, Object> arguments) throws Exception {
         String sql = (String) arguments.get(SQL);
         var txOption = getTransactionOption(arguments);
 
@@ -57,6 +58,9 @@ public class DdlTool extends AbstractTool {
             transaction.executeAndGetCountDetail(ps);
 
             transaction.commit(TgCommitType.DEFAULT);
+        } catch (Exception e) {
+            LOG.warn("Failed to execute DDL", e);
+            return ExceptionUtil.createErrorToolResult(e);
         }
 
         return "succeeded";

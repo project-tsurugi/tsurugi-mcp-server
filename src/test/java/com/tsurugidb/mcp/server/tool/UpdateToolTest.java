@@ -58,7 +58,8 @@ class UpdateToolTest extends TsurugiMcpTester {
 
             var args = new HashMap<String, Object>();
             args.put(UpdateTool.SQL, "update mcp_example set value=111 where pk=1");
-            Map<String, Long> result = target.action(null, args);
+            @SuppressWarnings("unchecked")
+            var result = (Map<String, Long>) target.action(null, args);
 
             assertEquals(Map.of("updated_rows", 1L), result);
             assertSelect(1, 111);
@@ -75,7 +76,8 @@ class UpdateToolTest extends TsurugiMcpTester {
             var args = new HashMap<String, Object>();
             args.put(UpdateTool.SQL, "update mcp_example set value=222 where pk=2");
             args.put(UpdateTool.TRANSACTION_TYPE, "OCC");
-            Map<String, Long> result = target.action(null, args);
+            @SuppressWarnings("unchecked")
+            var result = (Map<String, Long>) target.action(null, args);
 
             assertEquals(Map.of("updated_rows", 1L), result);
             assertSelect(2, 222);
@@ -93,7 +95,8 @@ class UpdateToolTest extends TsurugiMcpTester {
             args.put(UpdateTool.SQL, "update mcp_example set value=333 where pk=3");
             args.put(UpdateTool.TRANSACTION_TYPE, "LTX");
             args.put(UpdateTool.WRITE_PRESERVE, "mcp_example");
-            Map<String, Long> result = target.action(null, args);
+            @SuppressWarnings("unchecked")
+            var result = (Map<String, Long>) target.action(null, args);
 
             assertEquals(Map.of("updated_rows", 1L), result);
             assertSelect(3, 333);

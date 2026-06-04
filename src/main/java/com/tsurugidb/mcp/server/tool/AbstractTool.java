@@ -20,6 +20,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.tsurugidb.mcp.server.Arguments;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
@@ -31,6 +34,7 @@ import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 
 public abstract class AbstractTool {
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected McpJsonMapper jsonMapper;
     protected SessionPool pool;

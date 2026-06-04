@@ -65,7 +65,7 @@ class DdlToolTest extends TsurugiMcpTester {
             if (transactionType != null) {
                 args.put(DdlTool.TRANSACTION_TYPE, transactionType);
             }
-            String result = target.action(null, args);
+            var result = (String) target.action(null, args);
 
             assertEquals("succeeded", result);
         }

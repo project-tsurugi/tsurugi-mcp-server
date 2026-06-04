@@ -78,6 +78,7 @@ To use this server with the [Claude Desktop](https://claude.ai/download), add th
 - `args`
   - Specify the jar file by full path.
   - `-c` or `--connection` - the endpoint URL to connect Tsurugi. (required)
+  - `--db-timeout` - default timeout (in seconds) for accessing Tsurugi. If set to 0, there is no timeout.
   - Specify one of the following credentials.
     - `"--user", "user"` and `"--password", "password"`
     - `"--auth-token", "auth token"`

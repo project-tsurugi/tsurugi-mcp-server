@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.OptionalLong;
 
 import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.Parameter;
@@ -36,6 +37,7 @@ public class Arguments {
     private String authToken;
     private String credentials;
     private Boolean noAuth;
+    private Long dbTimeout;
     private List<String> enableToolList = TsurugiMcpTool.toolNames();
     private List<String> disableToolList = new ArrayList<>();
     private boolean resourceEnable = true;
@@ -86,6 +88,26 @@ public class Arguments {
 
     public long getConnectionTimeout() {
         return connectionTimeout;
+    }
+
+    @Parameter(order = 13, //
+            names = { "--db-timeout" }, //
+            arity = 1, //
+            description = "Default timeout (in seconds) for accessing Tsurugi.", //
+            required = false)
+    public void setDbTimeout(long timeout) {
+        if (timeout < 0) {
+            throw new IllegalArgumentException(MessageFormat.format("timeout must be >= 0 (specified: {0})", timeout));
+        }
+        this.dbTimeout = timeout;
+    }
+
+    public Long getDbTimeout() {
+        return dbTimeout;
+    }
+
+    public OptionalLong findDbTimeout() {
+        return (dbTimeout != null) ? OptionalLong.of(dbTimeout) : OptionalLong.empty();
     }
 
     // Credential

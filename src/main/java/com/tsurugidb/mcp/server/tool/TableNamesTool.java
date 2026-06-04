@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.tsurugidb.mcp.server.util.ExceptionUtil;
+
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 
 public class TableNamesTool extends AbstractTool {
@@ -39,7 +41,7 @@ public class TableNamesTool extends AbstractTool {
     }
 
     @Override
-    protected List<TableName> action(McpSyncServerExchange exchange, Map<String, Object> arguments) throws Exception {
+    protected Object action(McpSyncServerExchange exchange, Map<String, Object> arguments) throws Exception {
         var list = new ArrayList<TableName>();
 
         try (var session = pool.getSession()) {
@@ -47,6 +49,9 @@ public class TableNamesTool extends AbstractTool {
             for (String tableName : tableNames) {
                 list.add(new TableName(tableName));
             }
+        } catch (Exception e) {
+            LOG.warn("failed to list table names", e);
+            return ExceptionUtil.createErrorToolResult(e);
         }
 
         return list;

@@ -33,8 +33,8 @@ import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
 import com.tsurugidb.iceaxe.sql.parameter.TgBindVariables;
 import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
 import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
-import com.tsurugidb.mcp.server.dao.QueryUtil.QueryResult;
 import com.tsurugidb.mcp.server.TsurugiMcpTester;
+import com.tsurugidb.mcp.server.dao.QueryUtil.QueryResult;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
 class QueryToolTest extends TsurugiMcpTester {
@@ -105,7 +105,7 @@ class QueryToolTest extends TsurugiMcpTester {
                 if (transactionType != null) {
                     args.put(QueryTool.TRANSACTION_TYPE, transactionType);
                 }
-                QueryResult result = target.action(null, args);
+                var result = (QueryResult) target.action(null, args);
 
                 list.addAll(result.rows());
                 assertNull(result.serializationFailureMessage());
@@ -117,7 +117,7 @@ class QueryToolTest extends TsurugiMcpTester {
             while (cursor != null) {
                 var args = new HashMap<String, Object>();
                 args.put(QueryTool.CURSOR, cursor);
-                QueryResult result = target.action(null, args);
+                var result = (QueryResult) target.action(null, args);
 
                 list.addAll(result.rows());
                 assertNull(result.serializationFailureMessage());
@@ -155,7 +155,7 @@ class QueryToolTest extends TsurugiMcpTester {
                     var args = new HashMap<String, Object>();
                     args.put(QueryTool.SQL, "select * from customer order by c_id");
                     args.put(QueryTool.TRANSACTION_TYPE, "OCC");
-                    QueryResult result = target.action(null, args);
+                    var result = (QueryResult) target.action(null, args);
 
                     assertNotNull(result.serializationFailureMessage());
                     assertTrue(result.serializationFailureMessage().contains("CC_EXCEPTION"));

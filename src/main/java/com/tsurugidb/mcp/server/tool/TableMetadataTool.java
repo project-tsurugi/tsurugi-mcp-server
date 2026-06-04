@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.tsurugidb.mcp.server.entity.TableMetadata;
+import com.tsurugidb.mcp.server.util.ExceptionUtil;
 
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
@@ -56,6 +57,9 @@ public class TableMetadataTool extends AbstractTool {
             var metadata = TableMetadata.of(opt.get());
 
             return metadata;
+        } catch (Exception e) {
+            LOG.warn("failed to get table metadata. table name: {}", tableName, e);
+            return ExceptionUtil.createErrorToolResult(e);
         }
     }
 }
