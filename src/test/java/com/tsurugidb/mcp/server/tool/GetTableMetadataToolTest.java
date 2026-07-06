@@ -20,7 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.HashMap;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.tsurugidb.mcp.server.TsurugiMcpTester;
 import com.tsurugidb.mcp.server.dao.SessionPool;
@@ -28,14 +29,14 @@ import com.tsurugidb.mcp.server.entity.TableMetadata;
 
 class GetTableMetadataToolTest extends TsurugiMcpTester {
 
-    @Test
-    void action() throws Exception {
-        var arguments = createTestArguments();
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action(TsurugiMode mode) throws Exception {
+        var arguments = createTestArguments(mode);
         try (var pool = SessionPool.create(arguments)) {
             try (var session = pool.getSession()) {
-                var tm = session.createTransactionManager();
-                tm.executeDdl("drop table if exists customer");
-                tm.executeDdl("""
+                session.executeDdl("drop table if exists customer", "OCC");
+                session.executeDdl("""
                         /**
                          customer for MCP test.
                          */
@@ -47,7 +48,7 @@ class GetTableMetadataToolTest extends TsurugiMcpTester {
                           /** customer age */
                           c_age int
                         )
-                        """);
+                        """, "OCC");
             }
 
             var target = new TableMetadataTool();

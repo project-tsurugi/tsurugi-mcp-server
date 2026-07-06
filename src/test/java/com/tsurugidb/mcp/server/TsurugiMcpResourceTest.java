@@ -17,21 +17,22 @@ package com.tsurugidb.mcp.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
 class TsurugiMcpResourceTest extends TsurugiMcpTester {
 
-    @Test
-    void tableSchema() throws Exception {
-        var arguments = createTestArguments();
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void tableSchema(TsurugiMode mode) throws Exception {
+        var arguments = createTestArguments(mode);
         try (var pool = SessionPool.create(arguments)) {
             try (var session = pool.getSession()) {
-                var tm = session.createTransactionManager();
-                tm.executeDdl("drop table if exists r_customer");
-                tm.executeDdl("""
-                        /**
+                session.executeDdl("drop table if exists r_customer", "OCC");
+                session.executeDdl("""
+                         /**
                          customer for MCP test.
                          */
                         create table r_customer (
@@ -42,7 +43,7 @@ class TsurugiMcpResourceTest extends TsurugiMcpTester {
                           /** customer age */
                           c_age int
                         )
-                        """);
+                        """, "OCC");
             }
 
             var target = new TsurugiMcpResource(createJsonMapper(), arguments, pool);

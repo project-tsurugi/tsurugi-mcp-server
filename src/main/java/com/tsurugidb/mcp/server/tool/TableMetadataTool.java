@@ -19,7 +19,6 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 
-import com.tsurugidb.mcp.server.entity.TableMetadata;
 import com.tsurugidb.mcp.server.util.ExceptionUtil;
 
 import io.modelcontextprotocol.server.McpSyncServerExchange;
@@ -49,12 +48,11 @@ public class TableMetadataTool extends AbstractTool {
         String tableName = (String) arguments.get(TABLE_NAME);
 
         try (var session = pool.getSession()) {
-            var opt = session.findTableMetadata(tableName);
-            if (opt.isEmpty()) {
+            var metadata = session.getTableMetadata(tableName);
+            if (metadata == null) {
                 String text = MessageFormat.format("table not found. specified table name: {0}", tableName);
                 return CallToolResult.builder().addTextContent(text).isError(true).build();
             }
-            var metadata = TableMetadata.of(opt.get());
 
             return metadata;
         } catch (Exception e) {

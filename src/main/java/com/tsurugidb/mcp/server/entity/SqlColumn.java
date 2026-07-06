@@ -17,6 +17,8 @@ package com.tsurugidb.mcp.server.entity;
 
 import java.util.Optional;
 
+import com.tsurugidb.grpc.client.metadata.Column;
+import com.tsurugidb.grpc.client.metadata.SqlType;
 import com.tsurugidb.iceaxe.metadata.ArbitraryInt;
 import com.tsurugidb.iceaxe.metadata.TgSqlColumn;
 
@@ -87,5 +89,56 @@ public record SqlColumn(String columnName, String columnDescription, String colu
         });
 
         return sb.isEmpty() ? null : sb.toString();
+    }
+
+    public static SqlColumn of(Column column) {
+        String name = column.name();
+        String description = column.description();
+        String tType = column.typeDefinition();
+        String typeDescription = getTypeDescription(column);
+        String constraint = getConstraint(column);
+        return new SqlColumn(name, description, tType, typeDescription, constraint);
+    }
+
+    private static String getTypeDescription(Column column) {
+        var sqlType = column.sqlType();
+        return switch (sqlType) {
+        case BOOLEAN -> "boolean";
+        case INT -> "4 byte integer";
+        case BIGINT -> "8 byte integer";
+        case REAL -> "4 byte floating point number";
+        case DOUBLE -> "8 byte floating point number";
+        case DECIMAL -> "multi precision decimal number";
+        case CHAR, VARCHAR -> getTypeDescriptionChar(column);
+        case BINARY, VARBINARY -> "byte sequence";
+        case DATE -> "date (year, month, day)";
+        case TIME -> "time of day (hour, minute, second, nanosecond)";
+        case TIMESTAMP -> "time point (year, month, day, hour, minute, second, nanosecond)";
+        case TIME_WITH_TIME_ZONE -> "time of day with time zone (hour, minute, second, nanosecond, time-zone-offset)";
+        case TIMESTAMP_WITH_TIME_ZONE -> "time point with time zone (year, month, day, hour, minute, second, nanosecond, time-zone-offset)";
+        case BLOB -> "binary large object (byte sequence)";
+        case CLOB -> "character large object (text)";
+        default -> "Tsurugi internal type name: " + sqlType.name();
+        };
+    }
+
+    static String getTypeDescriptionChar(Column column) {
+        var length = column.length();
+        if (length != null) {
+            if (column.sqlType() == SqlType.VARCHAR) {
+                if (!length.arbitrary()) {
+                    return "UTF-8 text of up to " + length.value() + " bytes";
+                }
+            } else {
+                if (!length.arbitrary()) {
+                    return length.value() + " byte UTF-8 text";
+                }
+            }
+        }
+        return "UTF-8 text";
+    }
+
+    static String getConstraint(Column column) {
+        return column.nullable() ? "NULL" : "NOT NULL";
     }
 }

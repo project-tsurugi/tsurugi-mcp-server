@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tsurugidb.mcp.server.dao;
+package com.tsurugidb.mcp.server.dao.iceaxe;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -33,8 +33,8 @@ import com.tsurugidb.tsubakuro.channel.common.connection.NullCredential;
 import com.tsurugidb.tsubakuro.channel.common.connection.RememberMeCredential;
 import com.tsurugidb.tsubakuro.channel.common.connection.UsernamePasswordCredential;
 
-public class CredentialUtil {
-    private static final Logger LOG = LoggerFactory.getLogger(CredentialUtil.class);
+public class IceaxeCredentialUtil {
+    private static final Logger LOG = LoggerFactory.getLogger(IceaxeCredentialUtil.class);
 
     public static List<Credential> getCredential(Arguments arguments) {
         var list = getCredentialList(arguments);

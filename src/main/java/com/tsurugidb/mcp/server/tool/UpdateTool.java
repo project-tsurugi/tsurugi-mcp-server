@@ -16,12 +16,9 @@
 package com.tsurugidb.mcp.server.tool;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.tsurugidb.iceaxe.transaction.TgCommitType;
-import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.mcp.server.util.ExceptionUtil;
 
 import io.modelcontextprotocol.server.McpSyncServerExchange;
@@ -54,43 +51,20 @@ public class UpdateTool extends AbstractTool {
     @Override
     protected Object action(McpSyncServerExchange exchange, Map<String, Object> arguments) throws Exception {
         String sql = (String) arguments.get(SQL);
-        var txOption = getTransactionOption(arguments);
-
-        var result = new LinkedHashMap<String, Long>();
-        try (var session = pool.getSession(); //
-                var transaction = session.createTransaction(txOption); //
-                var ps = session.createStatement(sql)) {
-            var count = transaction.executeAndGetCountDetail(ps);
-            for (var entry : count.getLowCounterMap().entrySet()) {
-                result.put(entry.getKey().name().toLowerCase(), entry.getValue());
+        String transactionType = (String) arguments.get(TRANSACTION_TYPE);
+        List<String> writePreserve = null;
+        {
+            String wp = (String) arguments.get(WRITE_PRESERVE);
+            if (wp != null) {
+                writePreserve = Arrays.stream(wp.split(",")).map(String::trim).toList();
             }
+        }
 
-            transaction.commit(TgCommitType.DEFAULT);
+        try (var session = pool.getSession()) {
+            return session.executeStatement(sql, transactionType, writePreserve);
         } catch (Exception e) {
             LOG.warn("Failed to execute update", e);
             return ExceptionUtil.createErrorToolResult(e);
         }
-
-        return result;
-    }
-
-    TgTxOption getTransactionOption(Map<String, Object> arguments) {
-        String transactionType = (String) arguments.get(TRANSACTION_TYPE);
-        if (transactionType == null) {
-            return TgTxOption.ofOCC();
-        }
-
-        return switch (transactionType.toUpperCase()) {
-        case "OCC", "SHORT" -> TgTxOption.ofOCC();
-        case "LTX", "LONG" -> {
-            String wp = (String) arguments.get(WRITE_PRESERVE);
-            if (wp == null) {
-                yield TgTxOption.ofLTX();
-            }
-            var writePreserve = Arrays.stream(wp.split(",")).map(String::trim).toList();
-            yield TgTxOption.ofLTX(writePreserve);
-        }
-        default -> throw new IllegalArgumentException("Unexpected transaction_type: " + transactionType);
-        };
     }
 }

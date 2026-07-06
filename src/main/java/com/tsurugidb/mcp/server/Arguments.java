@@ -42,6 +42,10 @@ public class Arguments {
     private List<String> disableToolList = new ArrayList<>();
     private boolean resourceEnable = true;
     private boolean promptEnable = true;
+
+    private String grpcEndpoint;
+    private boolean grpcSecure = false;
+
     private int responseLimistSize = 10 * 1024;
     private boolean printHelp;
 
@@ -51,7 +55,7 @@ public class Arguments {
             names = { "-c", "--connection" }, //
             arity = 1, //
             description = "Tsurugi server endpoint URI.", //
-            required = true)
+            required = false)
     public void setConnectionUri(URI uri) {
         Objects.requireNonNull(uri);
         this.connectionUri = uri;
@@ -259,6 +263,34 @@ public class Arguments {
 
     public boolean isPrompt() {
         return this.promptEnable;
+    }
+
+    // SQL over gRPC
+
+    @Parameter(order = 61, //
+            names = { "--grpc-endpoint" }, //
+            arity = 1, //
+            description = "gRPC server endpoint", //
+            required = false)
+    public void setGrpcEndpoint(String endpoint) {
+        this.grpcEndpoint = endpoint;
+    }
+
+    public String getGrpcEndpoint() {
+        return this.grpcEndpoint;
+    }
+
+    @Parameter(order = 62, //
+            names = { "--grpc-secure" }, //
+            arity = 1, //
+            description = "gRPC server secure", //
+            required = false)
+    public void setGrpcSecure(boolean secure) {
+        this.grpcSecure = secure;
+    }
+
+    public boolean isGrpcSecure() {
+        return this.grpcSecure;
     }
 
     // Response

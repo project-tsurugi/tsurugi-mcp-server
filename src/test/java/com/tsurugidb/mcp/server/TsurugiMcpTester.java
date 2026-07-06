@@ -31,11 +31,15 @@ public abstract class TsurugiMcpTester {
 
     private static URI endpoint;
 
-    protected static Arguments createTestArguments() {
-        return createTestArguments(true);
+    public enum TsurugiMode {
+        ICEAXE, GRPC
     }
 
-    protected static Arguments createTestArguments(boolean withCredential) {
+    protected static Arguments createTestArguments(TsurugiMode mode) {
+        return createTestArguments(mode, true);
+    }
+
+    protected static Arguments createTestArguments(TsurugiMode mode, boolean withCredential) {
         var arguments = new Arguments();
 
         if (endpoint == null) {

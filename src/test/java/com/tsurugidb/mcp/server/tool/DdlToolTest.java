@@ -20,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.HashMap;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.mcp.server.TsurugiMcpTester;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
@@ -30,32 +30,34 @@ class DdlToolTest extends TsurugiMcpTester {
 
     @BeforeEach
     void beforeEach() throws Exception {
-        var arguments = createTestArguments();
+        var arguments = createTestArguments(TsurugiMode.ICEAXE);
         try (var pool = SessionPool.create(arguments)) {
             try (var session = pool.getSession()) {
-                var tm = session.createTransactionManager(TgTxOption.ofOCC());
-                tm.executeDdl("drop table if exists mcp_example");
+                session.executeDdl("drop table if exists mcp_example", "OCC");
             }
         }
     }
 
-    @Test
-    void action() throws Exception {
-        action(null);
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action(TsurugiMode mode) throws Exception {
+        action(mode, null);
     }
 
-    @Test
-    void action_OCC() throws Exception {
-        action("OCC");
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action_OCC(TsurugiMode mode) throws Exception {
+        action(mode, "OCC");
     }
 
-    @Test
-    void action_LTX() throws Exception {
-        action("LTX");
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action_LTX(TsurugiMode mode) throws Exception {
+        action(mode, "LTX");
     }
 
-    private void action(String transactionType) throws Exception {
-        var arguments = createTestArguments();
+    private void action(TsurugiMode mode, String transactionType) throws Exception {
+        var arguments = createTestArguments(mode);
         try (var pool = SessionPool.create(arguments)) {
             var target = new DdlTool();
             target.initialize(createJsonMapper(), arguments, pool);

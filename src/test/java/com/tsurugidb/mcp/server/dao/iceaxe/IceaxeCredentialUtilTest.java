@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tsurugidb.mcp.server.dao;
+package com.tsurugidb.mcp.server.dao.iceaxe;
 
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,43 +21,47 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.net.URI;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.tsurugidb.iceaxe.TsurugiConnector;
 import com.tsurugidb.mcp.server.Arguments;
 import com.tsurugidb.mcp.server.TsurugiMcpTester;
 
-class CredentialUtilTest extends TsurugiMcpTester {
+class IceaxeCredentialUtilTest extends TsurugiMcpTester {
 
-    @Test
-    void userPassword() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void userPassword(TsurugiMode mode) throws Exception {
         String user = findUser();
         assumeNotNull(user);
 
-        var arguments = createTestArguments(false);
+        var arguments = createTestArguments(mode, false);
         arguments.setUser(user);
         arguments.setPassword(findPassword());
 
         connectTest(arguments);
     }
 
-    @Test
-    void authToken() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void authToken(TsurugiMode mode) throws Exception {
         String authToken = findAuthToken();
         assumeNotNull(authToken);
 
-        var arguments = createTestArguments(false);
+        var arguments = createTestArguments(mode, false);
         arguments.setAuthToken(authToken);
 
         connectTest(arguments);
     }
 
-    @Test
-    void fileCredential() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void fileCredential(TsurugiMode mode) throws Exception {
         String credentials = findCredentials();
         assumeNotNull(credentials);
 
-        var arguments = createTestArguments(false);
+        var arguments = createTestArguments(mode, false);
         arguments.setCredentials(credentials);
 
         connectTest(arguments);
@@ -65,7 +69,7 @@ class CredentialUtilTest extends TsurugiMcpTester {
 
     private void connectTest(Arguments arguments) throws IOException, InterruptedException {
         URI endpoint = arguments.getConnectionUri();
-        var credentialList = CredentialUtil.getCredential(arguments);
+        var credentialList = IceaxeCredentialUtil.getCredential(arguments);
         assertEquals(1, credentialList.size());
         var credential = credentialList.getFirst();
         var connector = TsurugiConnector.of(endpoint, credential);
