@@ -31,4 +31,15 @@ public record TableMetadata(String databaseName, String schemaName, String table
                 columnList, //
                 metadata.getPrimaryKeys());
     }
+
+    public static TableMetadata of(com.tsurugidb.grpc.client.metadata.TableMetadata metadata) {
+        var columnList = metadata.columns().stream().map(SqlColumn::of).toList();
+        return new TableMetadata( //
+                metadata.databaseName(), //
+                metadata.schemaName(), //
+                metadata.tableName(), //
+                metadata.description(), //
+                columnList, //
+                metadata.primaryKeys());
+    }
 }
