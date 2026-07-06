@@ -20,7 +20,6 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,17 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tsurugidb.iceaxe.exception.TsurugiExceptionUtil;
-import com.tsurugidb.iceaxe.session.TsurugiSession;
-import com.tsurugidb.iceaxe.sql.TsurugiSqlQuery;
-import com.tsurugidb.iceaxe.sql.result.TgResultMapping;
-import com.tsurugidb.iceaxe.sql.result.TsurugiQueryResult;
-import com.tsurugidb.iceaxe.sql.result.TsurugiResultRecord;
 import com.tsurugidb.iceaxe.sql.type.TgBlobReference;
 import com.tsurugidb.iceaxe.sql.type.TgClobReference;
-import com.tsurugidb.iceaxe.transaction.TgCommitType;
-import com.tsurugidb.iceaxe.transaction.TsurugiTransaction;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
-import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.iceaxe.util.InterruptedRuntimeException;
 import com.tsurugidb.mcp.server.Arguments;
 
@@ -62,11 +53,11 @@ public class QueryUtil {
         this.limitSize = arguments.getResponseLimitSize();
     }
 
-    public QueryResult execute(String sql, TgTxOption txOption, String cursor) {
+    public QueryResult execute(String sql, String transactionType, String cursor) {
         QueryCache cache;
         if (cursor == null) {
             cache = new QueryCache(pool.getSession());
-            cache.initialize(sql, txOption);
+            cache.initialize(sql, transactionType);
         } else {
             cache = queryMap.remove(cursor);
             if (cache == null) {
@@ -89,26 +80,21 @@ public class QueryUtil {
 
     private class QueryCache implements AutoCloseable {
         private final int queryId;
-        private TsurugiSession session;
-        private TsurugiSqlQuery<TsurugiResultRecord> ps;
-        private TsurugiTransaction transaction;
-        private TsurugiQueryResult<TsurugiResultRecord> queryResult;
+        private TsurugiMcpSession session;
+        private TsurugiMcpResultSet resultSet;
         private List<Map<String, Object>> prevList = new ArrayList<>();
         private int prevSize;
         private boolean finish = false;
 
-        QueryCache(TsurugiSession session) {
+        QueryCache(TsurugiMcpSession session) {
             this.queryId = QUERY_ID.getAndIncrement();
             this.session = session;
         }
 
-        public void initialize(String sql, TgTxOption txOption) {
+        public void initialize(String sql, String transactionType) {
             try (var t = this) {
                 try {
-                    var resultMapping = TgResultMapping.of(record -> record);
-                    this.ps = session.createQuery(sql, resultMapping);
-                    this.transaction = session.createTransaction(txOption);
-                    this.queryResult = transaction.executeQuery(ps);
+                    this.resultSet = session.executeQuery(sql, transactionType);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e.getMessage(), e);
                 } catch (InterruptedException e) {
@@ -135,36 +121,27 @@ public class QueryUtil {
                 try {
                     boolean doCommit = false;
                     for (;;) {
-                        var recordOpt = queryResult.findRecord();
-                        if (recordOpt.isEmpty()) {
+                        var record = resultSet.nextRow();
+                        if (record == null) {
                             doCommit = true;
                             this.finish = true;
                             break;
                         }
-                        var record = recordOpt.get();
 
-                        var nameList = record.getNameList();
-                        int size = nameList.size();
-                        var map = new LinkedHashMap<String, Object>(size);
-                        for (int j = 0; j < size; j++) {
-                            String name = nameList.get(j);
-                            Object value = convert(record.getValueOrNull(j));
-                            map.put(name, value);
-                        }
-                        String text = jsonMapper.writeValueAsString(map);
+                        String text = jsonMapper.writeValueAsString(record);
 //                      int estimateSize = text.length() + 8;
                         int estimateSize = text.getBytes(StandardCharsets.UTF_8).length + 8;
                         if (estimateTotalSize + estimateSize >= limitSize) {
-                            prevList.add(map);
+                            prevList.add(record);
                             this.prevSize = estimateSize;
                             break;
                         }
                         estimateTotalSize += estimateSize;
-                        list.add(map);
+                        list.add(record);
                     }
 
                     if (doCommit) {
-                        transaction.commit(TgCommitType.DEFAULT);
+                        resultSet.commit();
                     }
                 } catch (IOException e) {
                     throw new UncheckedIOException(e.getMessage(), e);
@@ -192,7 +169,7 @@ public class QueryUtil {
         @Override
         public void close() {
             if (finish) {
-                try (var s = session; var p = ps; var t = transaction; var qr = queryResult) {
+                try (var s = session; var rs = resultSet) {
                     // close only
                 } catch (IOException e) {
                     throw new UncheckedIOException(e.getMessage(), e);
@@ -202,9 +179,7 @@ public class QueryUtil {
                     throw new RuntimeException(e);
                 } finally {
                     this.session = null;
-                    this.ps = null;
-                    this.transaction = null;
-                    this.queryResult = null;
+                    this.resultSet = null;
                 }
             }
         }

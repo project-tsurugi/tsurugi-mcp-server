@@ -18,8 +18,6 @@ package com.tsurugidb.mcp.server.tool;
 import java.util.List;
 import java.util.Map;
 
-import com.tsurugidb.iceaxe.transaction.TgCommitType;
-import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.mcp.server.util.ExceptionUtil;
 
 import io.modelcontextprotocol.server.McpSyncServerExchange;
@@ -50,32 +48,15 @@ public class DdlTool extends AbstractTool {
     @Override
     protected Object action(McpSyncServerExchange exchange, Map<String, Object> arguments) throws Exception {
         String sql = (String) arguments.get(SQL);
-        var txOption = getTransactionOption(arguments);
+        String transactionType = (String) arguments.get(DdlTool.TRANSACTION_TYPE);
 
-        try (var session = pool.getSession(); //
-                var transaction = session.createTransaction(txOption); //
-                var ps = session.createStatement(sql)) {
-            transaction.executeAndGetCountDetail(ps);
-
-            transaction.commit(TgCommitType.DEFAULT);
+        try (var session = pool.getSession()) {
+            session.executeDdl(sql, transactionType);
         } catch (Exception e) {
             LOG.warn("Failed to execute DDL", e);
             return ExceptionUtil.createErrorToolResult(e);
         }
 
         return "succeeded";
-    }
-
-    TgTxOption getTransactionOption(Map<String, Object> arguments) {
-        String transactionType = (String) arguments.get(TRANSACTION_TYPE);
-        if (transactionType == null) {
-            return TgTxOption.ofOCC();
-        }
-
-        return switch (transactionType.toUpperCase()) {
-        case "OCC", "SHORT" -> TgTxOption.ofOCC();
-        case "LTX", "LONG" -> TgTxOption.ofDDL();
-        default -> throw new IllegalArgumentException("Unexpected transaction_type: " + transactionType);
-        };
     }
 }

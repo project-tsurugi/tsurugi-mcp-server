@@ -24,15 +24,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import com.tsurugidb.iceaxe.sql.parameter.TgBindParameters;
-import com.tsurugidb.iceaxe.sql.parameter.TgBindVariables;
-import com.tsurugidb.iceaxe.sql.parameter.TgParameterMapping;
-import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.mcp.server.TsurugiMcpTester;
 import com.tsurugidb.mcp.server.dao.QueryUtil.QueryResult;
 import com.tsurugidb.mcp.server.dao.SessionPool;
@@ -43,56 +41,57 @@ class QueryToolTest extends TsurugiMcpTester {
 
     @BeforeAll
     static void beforeAll() throws Exception {
-        var arguments = createTestArguments();
+        var arguments = createTestArguments(TsurugiMode.ICEAXE);
         try (var pool = SessionPool.create(arguments)) {
             try (var session = pool.getSession()) {
-                var tm = session.createTransactionManager(TgTxOption.ofOCC());
-                tm.executeDdl("drop table if exists customer");
-                tm.executeDdl("""
+                session.executeDdl("drop table if exists customer", "OCC");
+                session.executeDdl("""
                         create table customer (
                           c_id bigint primary key,
                           c_name varchar(20),
                           c_age int,
                           c_date date
                         )
-                        """);
-                tm.execute(transaction -> {
-                    String sql = "insert into customer values(:id, :name, :age, :date)";
-                    var parameterMapping = TgParameterMapping.of(TgBindVariables.of().addLong("id").addString("name").addInt("age").addDate("date"));
-                    try (var ps = session.createStatement(sql, parameterMapping)) {
-                        for (int i = 1; i <= SIZE; i++) {
-                            var parameter = TgBindParameters.of().add("id", (long) i).add("name", "name" + i).add("age", i % 100 + 1).add("date", LocalDate.now());
-                            transaction.executeAndGetCount(ps, parameter);
-                        }
-                    }
-                    return;
-                });
+                        """, "OCC");
+                for (int i = 1; i <= SIZE; i++) {
+                    long id = i;
+                    String name = "name" + i;
+                    int age = i % 100 + 1;
+                    String date = LocalDate.now().toString();
+                    String sql = String.format("insert into customer values(%d, '%s', %d, '%s')", id, name, age, date);
+
+                    session.executeStatement(sql, "OCC", null);
+                }
             }
         }
     }
 
-    @Test
-    void action() throws Exception {
-        action(null);
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action(TsurugiMode mode) throws Exception {
+        action(mode, null);
     }
 
-    @Test
-    void action_OCC() throws Exception {
-        action("OCC");
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action_OCC(TsurugiMode mode) throws Exception {
+        action(mode, "OCC");
     }
 
-    @Test
-    void action_LTX() throws Exception {
-        action("LTX");
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action_LTX(TsurugiMode mode) throws Exception {
+        action(mode, "LTX");
     }
 
-    @Test
-    void action_RTX() throws Exception {
-        action("RTX");
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action_RTX(TsurugiMode mode) throws Exception {
+        action(mode, "RTX");
     }
 
-    private void action(String transactionType) throws Exception {
-        var arguments = createTestArguments();
+    private void action(TsurugiMode mode, String transactionType) throws Exception {
+        var arguments = createTestArguments(mode);
         try (var pool = SessionPool.create(arguments)) {
             var target = new QueryTool();
             target.initialize(createJsonMapper(), arguments, pool);
@@ -140,13 +139,13 @@ class QueryToolTest extends TsurugiMcpTester {
         }
     }
 
-    @Test
-    void action_serializationFailure() throws Exception {
-        var arguments = createTestArguments();
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action_serializationFailure(TsurugiMode mode) throws Exception {
+        var arguments = createTestArguments(mode);
         try (var pool = SessionPool.create(arguments)) {
             try (var session = pool.getSession(); //
-                    var ltx = session.createTransaction(TgTxOption.ofLTX("customer"))) {
-                ltx.getLowTransaction();
+                    var ltx = session.createTransaction("LTX", List.of("customer"))) {
 
                 try {
                     var target = new QueryTool();

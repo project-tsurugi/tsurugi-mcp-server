@@ -21,9 +21,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.mcp.server.TsurugiMcpTester;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
@@ -31,27 +31,27 @@ class UpdateToolTest extends TsurugiMcpTester {
 
     @BeforeAll
     static void beforeAll() throws Exception {
-        var arguments = createTestArguments();
+        var arguments = createTestArguments(TsurugiMode.ICEAXE);
         try (var pool = SessionPool.create(arguments)) {
             try (var session = pool.getSession()) {
-                var tm = session.createTransactionManager(TgTxOption.ofOCC());
-                tm.executeDdl("drop table if exists mcp_example");
-                tm.executeDdl("""
+                session.executeDdl("drop table if exists mcp_example", "OCC");
+                session.executeDdl("""
                         create table mcp_example (
                           pk int primary key,
                           value bigint
                         )
-                        """);
-                tm.executeAndGetCount("insert into mcp_example values(1, 11)");
-                tm.executeAndGetCount("insert into mcp_example values(2, 22)");
-                tm.executeAndGetCount("insert into mcp_example values(3, 33)");
+                        """, "OCC");
+                session.executeStatement("insert into mcp_example values(1, 11)", "OCC", null);
+                session.executeStatement("insert into mcp_example values(2, 22)", "OCC", null);
+                session.executeStatement("insert into mcp_example values(3, 33)", "OCC", null);
             }
         }
     }
 
-    @Test
-    void action() throws Exception {
-        var arguments = createTestArguments();
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action(TsurugiMode mode) throws Exception {
+        var arguments = createTestArguments(mode);
         try (var pool = SessionPool.create(arguments)) {
             var target = new UpdateTool();
             target.initialize(createJsonMapper(), arguments, pool);
@@ -62,13 +62,14 @@ class UpdateToolTest extends TsurugiMcpTester {
             var result = (Map<String, Long>) target.action(null, args);
 
             assertEquals(Map.of("updated_rows", 1L), result);
-            assertSelect(1, 111);
+            assertSelect(mode, 1, 111);
         }
     }
 
-    @Test
-    void action_OCC() throws Exception {
-        var arguments = createTestArguments();
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action_OCC(TsurugiMode mode) throws Exception {
+        var arguments = createTestArguments(mode);
         try (var pool = SessionPool.create(arguments)) {
             var target = new UpdateTool();
             target.initialize(createJsonMapper(), arguments, pool);
@@ -80,13 +81,14 @@ class UpdateToolTest extends TsurugiMcpTester {
             var result = (Map<String, Long>) target.action(null, args);
 
             assertEquals(Map.of("updated_rows", 1L), result);
-            assertSelect(2, 222);
+            assertSelect(mode, 2, 222);
         }
     }
 
-    @Test
-    void action_LTX() throws Exception {
-        var arguments = createTestArguments();
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void action_LTX(TsurugiMode mode) throws Exception {
+        var arguments = createTestArguments(mode);
         try (var pool = SessionPool.create(arguments)) {
             var target = new UpdateTool();
             target.initialize(createJsonMapper(), arguments, pool);
@@ -99,19 +101,22 @@ class UpdateToolTest extends TsurugiMcpTester {
             var result = (Map<String, Long>) target.action(null, args);
 
             assertEquals(Map.of("updated_rows", 1L), result);
-            assertSelect(3, 333);
+            assertSelect(mode, 3, 333);
         }
     }
 
-    private static void assertSelect(int pk, int value) throws Exception {
-        var arguments = createTestArguments();
+    private static void assertSelect(TsurugiMode mode, int pk, int value) throws Exception {
+        var arguments = createTestArguments(mode);
         try (var pool = SessionPool.create(arguments)) {
             try (var session = pool.getSession()) {
-                var tm = session.createTransactionManager(TgTxOption.ofOCC());
-                var entityList = tm.executeAndGetList("select * from mcp_example where pk=" + pk);
-                assertEquals(1, entityList.size());
-                var entity = entityList.getFirst();
-                assertEquals(value, entity.getIntOrNull("value"));
+                int count = 0;
+                try (var rs = session.executeQuery("select * from mcp_example where pk=" + pk, "OCC")) {
+                    var row = rs.nextRow();
+                    long actualValue = (Long) row.get("value");
+                    assertEquals(value, actualValue);
+                    count++;
+                }
+                assertEquals(1, count);
             }
         }
     }
