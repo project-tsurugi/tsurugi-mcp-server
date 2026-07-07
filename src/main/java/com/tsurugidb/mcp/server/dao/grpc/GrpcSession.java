@@ -143,7 +143,7 @@ public class GrpcSession extends TsurugiMcpSession {
         var helper = transaction.getSqlHelper();
 
         var queryOption = QueryOption.newBuilder() //
-                .timestampTimeUnit(TimestampTimeUnit.MICROSECOND) //
+                .timestampTimeUnit(TimestampTimeUnit.TSURUGI) //
                 .recordBatchInBytes(1024 * 1024) // 1MiB
                 .build();
         var quertResult = helper.executeQuery(sql, queryOption, timeout);
