@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.tsurugidb.grpc.client.exception.ServerException;
 import com.tsurugidb.iceaxe.util.InterruptedRuntimeException;
 import com.tsurugidb.mcp.server.Arguments;
 import com.tsurugidb.mcp.server.dao.grpc.GrpcSessionPool;
@@ -65,6 +66,8 @@ public abstract class SessionPool implements AutoCloseable {
                     throw new UncheckedIOException(e.getMessage(), e);
                 } catch (InterruptedException e) {
                     throw new InterruptedRuntimeException(e);
+                } catch (ServerException e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
@@ -98,7 +101,7 @@ public abstract class SessionPool implements AutoCloseable {
         }
     }
 
-    protected abstract TsurugiMcpSession createSession() throws IOException, InterruptedException;
+    protected abstract TsurugiMcpSession createSession() throws IOException, InterruptedException, ServerException;
 
     void returnSession(TsurugiMcpSession session) {
         sessionQueue.push(session);

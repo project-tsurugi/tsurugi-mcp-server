@@ -43,7 +43,7 @@ dependencies {
     implementation 'com.beust:jcommander:1.82'
     implementation "org.slf4j:slf4j-simple:2.0.17"
 
-    implementation 'com.tsurugidb.grpc:grpc-java-client:0.1.0-SNAPSHOT'
+    implementation 'com.tsurugidb.grpc:grpc-java-client-sql:0.1.0-SNAPSHOT'
 
     testImplementation platform('org.junit:junit-bom:5.12.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
