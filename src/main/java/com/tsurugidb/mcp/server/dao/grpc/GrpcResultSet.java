@@ -16,50 +16,49 @@
 package com.tsurugidb.mcp.server.dao.grpc;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.util.Iterator;
+import java.io.StringWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.tsurugidb.grpc.client.exception.ServerException;
+import com.tsurugidb.grpc.client.sql.SqlClient;
 import com.tsurugidb.grpc.client.sql.query.QueryRecord;
-import com.tsurugidb.grpc.client.sql.query.QueryResult;
-import com.tsurugidb.grpc.client.sql.query.QueryResultRecordIterable;
-import com.tsurugidb.grpc.client.transaction.CommitOption;
+import com.tsurugidb.grpc.client.sql.query.ResultSet;
 import com.tsurugidb.grpc.client.transaction.Transaction;
-import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.mcp.server.dao.TsurugiMcpResultSet;
 
 public class GrpcResultSet implements TsurugiMcpResultSet {
-    private final Transaction transaction;
-    private final QueryResult queryResult;
-    private final Iterator<QueryRecord> recordIterator;
-    private Duration timeout;
 
-    public GrpcResultSet(Transaction transaction, QueryResult queryResult, QueryResultRecordIterable iterable) {
+    private final SqlClient sqlClient;
+    private final Transaction transaction;
+    private final ResultSet resultSet;
+
+    public GrpcResultSet(SqlClient sqlClient, Transaction transaction, ResultSet resultSet) {
+        this.sqlClient = sqlClient;
         this.transaction = transaction;
-        this.queryResult = queryResult;
-        this.recordIterator = iterable.iterator();
+        this.resultSet = resultSet;
     }
 
     @Override
-    public Map<String, Object> nextRow() throws IOException, InterruptedException, TsurugiTransactionException {
-        if (!recordIterator.hasNext()) {
+    public Map<String, Object> nextRow() throws IOException, InterruptedException, ServerException {
+        if (!resultSet.next()) {
             return null;
         }
 
-        var record = recordIterator.next();
-        var nameList = record.getNameList();
-        var typeList = record.getSqlTypeList();
-        var map = new LinkedHashMap<String, Object>(nameList.size());
+        var record = resultSet.getCurrent();
+        var columnList = resultSet.getMetadata().columns();
+        var map = new LinkedHashMap<String, Object>(columnList.size());
         int i = 0;
-        for (String name : nameList) {
-            var type = typeList.get(i);
+        for (var column : columnList) {
+            String name = column.name();
+            if (name == null || name.isEmpty()) {
+                name = "@#" + i;
+            }
+            var type = column.sqlType();
             Object value = switch (type) {
-            case TIME_WITH_TIME_ZONE -> value = record.getTimeTzOrNullValue(i);
-            case TIMESTAMP_WITH_TIME_ZONE -> value = record.getTimestampTzOrNullValue(i);
-            case BLOB -> value = record.getBlobOrNullValue(i, null);
-            case CLOB -> value = record.getClobOrNullValue(i, null);
-            default -> record.getValue(i);
+            case BLOB -> value = downloadBlob(record, i);
+            case CLOB -> value = downloadClob(record, i);
+            default -> record.getValueOrNull(i);
             };
             map.put(name, value);
             i++;
@@ -67,15 +66,37 @@ public class GrpcResultSet implements TsurugiMcpResultSet {
         return map;
     }
 
-    @Override
-    public void commit() throws IOException, InterruptedException, TsurugiTransactionException {
-        var option = CommitOption.newBuilder().build();
-        transaction.commit(option, timeout);
+    private byte[] downloadBlob(QueryRecord record, int i) throws IOException, InterruptedException, ServerException {
+        var blob = record.getBlobReferenceOrNull(i);
+        if (blob == null) {
+            return null;
+        }
+
+        try (var is = sqlClient.downloadBlob(transaction, blob)) {
+            return is.readAllBytes();
+        }
+    }
+
+    private String downloadClob(QueryRecord record, int i) throws IOException, InterruptedException, ServerException {
+        var clob = record.getClobReferenceOrNull(i);
+        if (clob == null) {
+            return null;
+        }
+
+        try (var writer = new StringWriter()) {
+            sqlClient.downloadClob(transaction, clob, writer);
+            return writer.toString();
+        }
     }
 
     @Override
-    public void close() throws java.io.IOException, InterruptedException, TsurugiTransactionException {
-        try (transaction; queryResult) {
+    public void commit() throws IOException, InterruptedException, ServerException {
+        sqlClient.commit(transaction);
+    }
+
+    @Override
+    public void close() throws IOException, InterruptedException, ServerException {
+        try (transaction; resultSet) {
             // close only
         }
     }

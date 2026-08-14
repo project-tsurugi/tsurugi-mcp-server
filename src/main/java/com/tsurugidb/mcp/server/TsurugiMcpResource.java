@@ -24,6 +24,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.tsurugidb.grpc.client.exception.ServerException;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 import com.tsurugidb.mcp.server.dao.TsurugiMcpSession;
 import com.tsurugidb.mcp.server.entity.TableMetadata;
@@ -100,7 +101,7 @@ public class TsurugiMcpResource {
         }
     }
 
-    TableMetadata tableSchemaMain(String uriString) throws IOException, InterruptedException {
+    TableMetadata tableSchemaMain(String uriString) throws IOException, InterruptedException, ServerException {
         var uri = URI.create(uriString);
         String tableName = uri.getAuthority();
         if (tableName == null) {
