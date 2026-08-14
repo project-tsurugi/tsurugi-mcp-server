@@ -17,12 +17,13 @@ package com.tsurugidb.mcp.server.dao;
 
 import java.io.IOException;
 
+import com.tsurugidb.grpc.client.exception.ServerException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 
 public interface TsurugiMcpTransaction extends AutoCloseable {
 
-    public void rollback() throws IOException, InterruptedException, TsurugiTransactionException;
+    public void rollback() throws IOException, InterruptedException, TsurugiTransactionException, ServerException;
 
     @Override
-    public void close() throws IOException, InterruptedException;
+    public void close() throws IOException, InterruptedException, ServerException;
 }

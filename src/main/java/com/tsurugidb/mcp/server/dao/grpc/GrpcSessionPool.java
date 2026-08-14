@@ -24,10 +24,13 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.tsurugidb.grpc.client.Connector;
-import com.tsurugidb.grpc.client.exception.TsurugiGrpcIOException;
+import com.tsurugidb.grpc.client.common.CommonOption;
+import com.tsurugidb.grpc.client.connection.Connection;
+import com.tsurugidb.grpc.client.connection.ConnectionOption;
+import com.tsurugidb.grpc.client.exception.ServerException;
 import com.tsurugidb.grpc.client.exception.code.CoreDiagnosticCode;
 import com.tsurugidb.grpc.client.session.Credential;
+import com.tsurugidb.grpc.client.session.Session;
 import com.tsurugidb.grpc.client.session.SessionOption;
 import com.tsurugidb.mcp.server.Arguments;
 import com.tsurugidb.mcp.server.dao.SessionPool;
@@ -37,9 +40,21 @@ public class GrpcSessionPool extends SessionPool {
     private static final Logger LOG = LoggerFactory.getLogger(GrpcSessionPool.class);
 
     public static GrpcSessionPool create(Arguments arguments) {
+        CommonOption commonOption;
+        {
+            var builder = CommonOption.newBuilder();
+            arguments.findDbTimeout().ifPresent(timeout -> builder.timeout(Duration.ofSeconds(timeout)));
+            commonOption = builder.build();
+        }
+
         String endpoint = arguments.getGrpcEndpoint();
         boolean secure = arguments.isGrpcSecure();
-        var connector = Connector.connect(endpoint, secure);
+        var connectionOption = ConnectionOption.newBuilder() //
+                .target(endpoint) //
+                .secure(secure) //
+                .defaultCommonOption(commonOption) //
+                .build();
+        var connection = Connection.create(connectionOption);
 
         var credentialList = GrpcCredentialUtil.getCredential(arguments);
         SessionOption sessionOption;
@@ -47,11 +62,10 @@ public class GrpcSessionPool extends SessionPool {
             var builder = SessionOption.newBuilder();
             builder.applicationName("Tsurugi MCP server");
             builder.sessionLabel(arguments.getConnectionLabel());
-            arguments.findDbTimeout().ifPresent(timeout -> builder.defaultTimeout(Duration.ofSeconds(timeout)));
             sessionOption = builder.build();
         }
 
-        var pool = getConnector(connector, credentialList, sessionOption);
+        var pool = getConnection(connection, credentialList, sessionOption);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -63,21 +77,20 @@ public class GrpcSessionPool extends SessionPool {
         return pool;
     }
 
-    private static GrpcSessionPool getConnector(Connector connector, List<Credential> credentialList, SessionOption sessionOption) {
-        var attemptFailures = new ArrayList<IOException>();
+    private static GrpcSessionPool getConnection(Connection connection, List<Credential> credentialList, SessionOption sessionOption) {
+        var attemptFailures = new ArrayList<Exception>();
         for (var credential : credentialList) {
             var option = SessionOption.newBuilder(sessionOption).credential(credential).build();
-            var timeout = option.defaultTimeout();
-            try (var session = connector.createSession(option, timeout)) {
-                return new GrpcSessionPool(connector, option);
-            } catch (TsurugiGrpcIOException e) {
-                var code = e.findDiagnosticCode();
+            try (var session = Session.create(connection, option)) {
+                return new GrpcSessionPool(connection, option);
+            } catch (ServerException e) {
+                var code = e.getDiagnosticCode();
                 if (code == CoreDiagnosticCode.AUTHENTICATION_ERROR || code == CoreDiagnosticCode.INVALID_REQUEST) {
                     LOG.debug("authentication error in connection attempt. {}: {}", credential, e.getMessage());
                     attemptFailures.add(e);
                     continue;
                 }
-                throw new UncheckedIOException(e.getMessage(), e);
+                throw new RuntimeException(e);
             } catch (IOException e) {
                 throw new UncheckedIOException(e.getMessage(), e);
             } catch (InterruptedException e) {
@@ -97,19 +110,17 @@ public class GrpcSessionPool extends SessionPool {
         throw e;
     }
 
-    private final Connector connector;
+    private final Connection connection;
     private final SessionOption sessionOption;
-    private final Duration timeout;
 
-    private GrpcSessionPool(Connector connector, SessionOption option) {
-        this.connector = connector;
+    private GrpcSessionPool(Connection connection, SessionOption option) {
+        this.connection = connection;
         this.sessionOption = option;
-        this.timeout = option.defaultTimeout();
     }
 
     @Override
-    protected TsurugiMcpSession createSession() throws IOException, InterruptedException {
-        var session = connector.createSession(sessionOption, timeout);
+    protected TsurugiMcpSession createSession() throws IOException, InterruptedException, ServerException {
+        var session = Session.create(connection, sessionOption);
         return new GrpcSession(this, session);
     }
 }

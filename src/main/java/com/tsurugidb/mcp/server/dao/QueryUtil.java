@@ -28,6 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.tsurugidb.grpc.client.exception.ServerException;
+import com.tsurugidb.grpc.client.exception.code.SqlDiagnosticCode;
 import com.tsurugidb.iceaxe.exception.TsurugiExceptionUtil;
 import com.tsurugidb.iceaxe.sql.type.TgBlobReference;
 import com.tsurugidb.iceaxe.sql.type.TgClobReference;
@@ -99,7 +101,7 @@ public class QueryUtil {
                     throw new UncheckedIOException(e.getMessage(), e);
                 } catch (InterruptedException e) {
                     throw new InterruptedRuntimeException(e);
-                } catch (TsurugiTransactionException e) {
+                } catch (TsurugiTransactionException | ServerException e) {
                     throw new RuntimeException(e);
                 }
             } catch (Exception e) {
@@ -154,6 +156,13 @@ public class QueryUtil {
                     } else {
                         throw new RuntimeException(e);
                     }
+                } catch (ServerException e) {
+                    if (e.getDiagnosticCode().isSubcodeOf(SqlDiagnosticCode.CC_EXCEPTION)) {
+                        serializationFauluerMessage = e.getMessage();
+                        this.finish = true;
+                    } else {
+                        throw new RuntimeException(e);
+                    }
                 }
 
                 boolean hasMore = !this.finish;
@@ -175,7 +184,7 @@ public class QueryUtil {
                     throw new UncheckedIOException(e.getMessage(), e);
                 } catch (InterruptedException e) {
                     throw new InterruptedRuntimeException(e);
-                } catch (TsurugiTransactionException e) {
+                } catch (TsurugiTransactionException | ServerException e) {
                     throw new RuntimeException(e);
                 } finally {
                     this.session = null;
