@@ -28,7 +28,6 @@ import com.tsurugidb.grpc.client.sql.SqlClient;
 import com.tsurugidb.grpc.client.sql.query.QueryOption;
 import com.tsurugidb.grpc.client.sql.query.QueryResult;
 import com.tsurugidb.grpc.client.sql.query.ResultSet;
-import com.tsurugidb.grpc.client.sql.query.TimestampTimeUnit;
 import com.tsurugidb.grpc.client.transaction.TransactionOption;
 import com.tsurugidb.grpc.client.transaction.TransactionType;
 import com.tsurugidb.mcp.server.dao.SessionPool;
@@ -143,7 +142,6 @@ public class GrpcSession extends TsurugiMcpSession {
         QueryResult queryResult;
         try {
             var queryOption = QueryOption.newBuilder() //
-                    .timestampTimeUnit(TimestampTimeUnit.TSURUGI) //
                     .recordBatchInBytes(1024 * 1024) // 1MiB
                     .build();
             queryResult = sqlClient.query(transaction, sql, queryOption);
