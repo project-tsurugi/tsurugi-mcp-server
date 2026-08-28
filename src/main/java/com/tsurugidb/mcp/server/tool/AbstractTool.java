@@ -60,17 +60,12 @@ public abstract class AbstractTool {
             }
         }
 
-        var schema = new McpSchema.JsonSchema( //
-                "object", // type
-                properties, // properties
-                requiredProperties, // required property
-                null, // additionalProperties
-                null, null);
-
-        var tool = McpSchema.Tool.builder() //
-                .name(toolName) //
+        var inputSchema = Map.<String, Object>of( //
+                "type", "object", //
+                "properties", properties, //
+                "required", requiredProperties);
+        var tool = McpSchema.Tool.builder(toolName, inputSchema) //
                 .description(description) //
-                .inputSchema(schema) //
                 .build();
         return SyncToolSpecification.builder() //
                 .tool(tool) //

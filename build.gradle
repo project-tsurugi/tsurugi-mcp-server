@@ -38,10 +38,9 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.modelcontextprotocol.sdk:mcp:0.15.0'
+    implementation 'io.modelcontextprotocol.sdk:mcp:2.0.1'
     implementation 'com.tsurugidb.iceaxe:iceaxe-core:1.17.0-SNAPSHOT'
     implementation 'com.beust:jcommander:1.82'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0'
     implementation "org.slf4j:slf4j-simple:2.0.17"
 
     testImplementation platform('org.junit:junit-bom:5.12.2')

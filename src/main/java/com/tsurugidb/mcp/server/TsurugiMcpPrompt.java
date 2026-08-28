@@ -43,59 +43,65 @@ public class TsurugiMcpPrompt {
     }
 
     private SyncPromptSpecification tableListPrompt() {
-        var Prompt = new McpSchema.Prompt( //
-                "tableList-prompt", // name //$NON-NLS-1$
-                Messages.getString("TsurugiMcpPrompt.0"), // description //$NON-NLS-1$
-                List.of() // arguments
-        );
-        return new SyncPromptSpecification(Prompt, this::tableList);
+        var prompt = McpSchema.Prompt.builder("tableList-prompt") //$NON-NLS-1$
+                .description(Messages.getString("TsurugiMcpPrompt.0")) //$NON-NLS-1$
+                .build();
+        return new SyncPromptSpecification(prompt, this::tableList);
     }
 
     private GetPromptResult tableList(McpSyncServerExchange exchange, GetPromptRequest request) {
         String text = Messages.getString("TsurugiMcpPrompt.1"); //$NON-NLS-1$
-        var content = new McpSchema.TextContent(text);
+        var content = McpSchema.TextContent.builder(text).build();
         var message = new PromptMessage(Role.USER, content);
         String description = Messages.getString("TsurugiMcpPrompt.2"); //$NON-NLS-1$
-        return new GetPromptResult(description, List.of(message));
+        return GetPromptResult.builder(List.of(message)) //
+                .description(description) //
+                .build();
     }
 
     static final String TABLE_NAME = "tableName"; //$NON-NLS-1$
 
     private SyncPromptSpecification tableLMetadataPrompt() {
-        var Prompt = new McpSchema.Prompt( //
-                "tableMetadata-prompt", // name //$NON-NLS-1$
-                Messages.getString("TsurugiMcpPrompt.3"), // description //$NON-NLS-1$
-                List.of(new PromptArgument(TABLE_NAME, Messages.getString("TsurugiMcpPrompt.4"), true)) // arguments //$NON-NLS-1$
-        );
-        return new SyncPromptSpecification(Prompt, this::tableMetadata);
+        var prompt = McpSchema.Prompt.builder("tableMetadata-prompt") //$NON-NLS-1$
+                .description(Messages.getString("TsurugiMcpPrompt.3")) //$NON-NLS-1$
+                .arguments(List.of( //
+                        PromptArgument.builder(TABLE_NAME).description(Messages.getString("TsurugiMcpPrompt.4")).required(true).build() //$NON-NLS-1$
+                )) //
+                .build();
+        return new SyncPromptSpecification(prompt, this::tableMetadata);
     }
 
     private GetPromptResult tableMetadata(McpSyncServerExchange exchange, GetPromptRequest request) {
         String tableName = (String) request.arguments().get(TABLE_NAME);
 
         String text = Messages.getString("TsurugiMcpPrompt.5").formatted(tableName); //$NON-NLS-1$
-        var content = new McpSchema.TextContent(text);
+        var content = McpSchema.TextContent.builder(text).build();
         var message = new PromptMessage(Role.USER, content);
         String description = Messages.getString("TsurugiMcpPrompt.6").formatted(tableName); //$NON-NLS-1$
-        return new GetPromptResult(description, List.of(message));
+        return GetPromptResult.builder(List.of(message)) //
+                .description(description) //
+                .build();
     }
 
     private SyncPromptSpecification queryPrompt() {
-        var Prompt = new McpSchema.Prompt( //
-                "query-prompt", // name //$NON-NLS-1$
-                Messages.getString("TsurugiMcpPrompt.7"), // description //$NON-NLS-1$
-                List.of(new PromptArgument(TABLE_NAME, Messages.getString("TsurugiMcpPrompt.8"), true)) // arguments //$NON-NLS-1$
-        );
-        return new SyncPromptSpecification(Prompt, this::query);
+        var prompt = McpSchema.Prompt.builder("query-prompt") //$NON-NLS-1$
+                .description(Messages.getString("TsurugiMcpPrompt.7")) //$NON-NLS-1$
+                .arguments(List.of( //
+                        PromptArgument.builder(TABLE_NAME).description(Messages.getString("TsurugiMcpPrompt.8")).required(true).build() //$NON-NLS-1$
+                )) //
+                .build();
+        return new SyncPromptSpecification(prompt, this::query);
     }
 
     private GetPromptResult query(McpSyncServerExchange exchange, GetPromptRequest request) {
         String tableName = (String) request.arguments().get(TABLE_NAME);
 
         String text = Messages.getString("TsurugiMcpPrompt.9").formatted(tableName); //$NON-NLS-1$
-        var content = new McpSchema.TextContent(text);
+        var content = McpSchema.TextContent.builder(text).build();
         var message = new PromptMessage(Role.USER, content);
         String description = Messages.getString("TsurugiMcpPrompt.10").formatted(tableName); //$NON-NLS-1$
-        return new GetPromptResult(description, List.of(message));
+        return GetPromptResult.builder(List.of(message)) //
+                .description(description) //
+                .build();
     }
 }
