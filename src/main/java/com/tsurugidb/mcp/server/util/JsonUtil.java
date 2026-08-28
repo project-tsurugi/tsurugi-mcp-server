@@ -15,26 +15,17 @@
  */
 package com.tsurugidb.mcp.server.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import io.modelcontextprotocol.json.McpJsonMapper;
-import io.modelcontextprotocol.json.jackson.JacksonMcpJsonMapper;
+import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 public class JsonUtil {
 
-    public static ObjectMapper createObjectMapper() {
-        var objectMapper = new ObjectMapper();
-
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        return objectMapper;
-    }
-
     public static McpJsonMapper createJsonMapper() {
-        var objectMapper = createObjectMapper();
-        return new JacksonMcpJsonMapper(objectMapper);
+        var jsonMapper = JsonMapper.builder() //
+                .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS) //
+                .build();
+        return new JacksonMcpJsonMapper(jsonMapper);
     }
 }

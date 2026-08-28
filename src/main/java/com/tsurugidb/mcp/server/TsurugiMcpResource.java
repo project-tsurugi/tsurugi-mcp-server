@@ -74,9 +74,9 @@ public class TsurugiMcpResource {
     }
 
     private SyncResourceSpecification tableSchemaResource(String tableName) {
-        var resource = McpSchema.Resource.builder() //
-                .uri("tsurugidb://%s/schema".formatted(tableName)) //
-                .name("%s table schema".formatted(tableName)) //
+        String uri = "tsurugidb://%s/schema".formatted(tableName);
+        String name = "%s table schema".formatted(tableName);
+        var resource = McpSchema.Resource.builder(uri, name) //
                 .description("'%s' table schema in Tsurugi database".formatted(tableName)) //
                 .mimeType("application/json") //
                 .build();
@@ -86,11 +86,14 @@ public class TsurugiMcpResource {
     private ReadResourceResult tableSchema(McpSyncServerExchange exchange, ReadResourceRequest request) {
         try {
             String uri = request.uri();
-            var metadata = tableSchemaMain(uri);
+            String mimeType = "application/json";
 
+            var metadata = tableSchemaMain(uri);
             String text = jsonMapper.writeValueAsString(metadata);
-            var content = new TextResourceContents(request.uri(), "application/json", text);
-            return new ReadResourceResult(List.of(content));
+            var content = TextResourceContents.builder(uri, text) //
+                    .mimeType(mimeType) //
+                    .build();
+            return ReadResourceResult.builder(List.of(content)).build();
         } catch (RuntimeException e) {
             LOG.warn("runtime exception", e);
             throw e;
