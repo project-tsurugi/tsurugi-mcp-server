@@ -1,0 +1,44 @@
+/*
+ * Copyright 2025-2026 Project Tsurugi.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.tsurugidb.mcp.server.dao.grpc;
+
+import java.io.IOException;
+
+import com.tsurugidb.grpc.client.exception.ServerException;
+import com.tsurugidb.grpc.client.sql.SqlClient;
+import com.tsurugidb.grpc.client.transaction.Transaction;
+import com.tsurugidb.mcp.server.dao.TsurugiMcpTransaction;
+
+public class GrpcTransaction implements TsurugiMcpTransaction {
+
+    private final SqlClient sqlClient;
+    private final Transaction transaction;
+
+    public GrpcTransaction(SqlClient sqlClient, Transaction transaction) {
+        this.sqlClient = sqlClient;
+        this.transaction = transaction;
+    }
+
+    @Override
+    public void rollback() throws IOException, InterruptedException, ServerException {
+        sqlClient.rollback(transaction);
+    }
+
+    @Override
+    public void close() throws IOException, InterruptedException, ServerException {
+        transaction.close();
+    }
+}

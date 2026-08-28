@@ -24,8 +24,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.tsurugidb.iceaxe.session.TsurugiSession;
+import com.tsurugidb.grpc.client.exception.ServerException;
 import com.tsurugidb.mcp.server.dao.SessionPool;
+import com.tsurugidb.mcp.server.dao.TsurugiMcpSession;
 import com.tsurugidb.mcp.server.entity.TableMetadata;
 
 import io.modelcontextprotocol.json.McpJsonMapper;
@@ -49,7 +50,7 @@ public class TsurugiMcpResource {
         this.pool = pool;
     }
 
-    protected TsurugiSession getSession() throws IOException {
+    protected TsurugiMcpSession getSession() throws IOException {
         return pool.getSession();
     }
 
@@ -103,7 +104,7 @@ public class TsurugiMcpResource {
         }
     }
 
-    TableMetadata tableSchemaMain(String uriString) throws IOException, InterruptedException {
+    TableMetadata tableSchemaMain(String uriString) throws IOException, InterruptedException, ServerException {
         var uri = URI.create(uriString);
         String tableName = uri.getAuthority();
         if (tableName == null) {
@@ -111,12 +112,12 @@ public class TsurugiMcpResource {
         }
 
         try (var session = getSession()) {
-            var opt = session.findTableMetadata(tableName);
-            if (opt.isEmpty()) {
+            var metadata = session.getTableMetadata(tableName);
+            if (metadata == null) {
                 throw new RuntimeException(MessageFormat.format("table not found. tableName={0}", tableName));
             }
 
-            return TableMetadata.of(opt.get());
+            return metadata;
         }
     }
 }

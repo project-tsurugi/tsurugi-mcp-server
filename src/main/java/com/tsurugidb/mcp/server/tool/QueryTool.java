@@ -18,7 +18,6 @@ package com.tsurugidb.mcp.server.tool;
 import java.util.List;
 import java.util.Map;
 
-import com.tsurugidb.iceaxe.transaction.option.TgTxOption;
 import com.tsurugidb.mcp.server.Arguments;
 import com.tsurugidb.mcp.server.dao.QueryUtil;
 import com.tsurugidb.mcp.server.dao.SessionPool;
@@ -65,27 +64,13 @@ public class QueryTool extends AbstractTool {
     protected Object action(McpSyncServerExchange exchange, Map<String, Object> arguments) throws Exception {
         try {
             String sql = (String) arguments.get(SQL);
-            var txOption = getTransactionOption(arguments);
+            String transactionType = (String) arguments.get(TRANSACTION_TYPE);
             String cursor = (String) arguments.get(CURSOR);
 
-            return queryUtil.execute(sql, txOption, cursor);
+            return queryUtil.execute(sql, transactionType, cursor);
         } catch (Exception e) {
             LOG.warn("Failed to execute query", e);
             return ExceptionUtil.createErrorToolResult(e);
         }
-    }
-
-    TgTxOption getTransactionOption(Map<String, Object> arguments) {
-        String transactionType = (String) arguments.get(TRANSACTION_TYPE);
-        if (transactionType == null) {
-            return TgTxOption.ofRTX();
-        }
-
-        return switch (transactionType.toUpperCase()) {
-        case "OCC", "SHORT" -> TgTxOption.ofOCC();
-        case "LTX", "LONG" -> TgTxOption.ofLTX();
-        case "RTX", "READ ONLY" -> TgTxOption.ofRTX();
-        default -> throw new IllegalArgumentException("Unexpected transaction_type: " + transactionType);
-        };
     }
 }
