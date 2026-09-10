@@ -20,15 +20,14 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import com.tsurugidb.grpc.client.exception.ServerException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 
 public interface TsurugiMcpResultSet extends AutoCloseable {
 
-    public @Nullable Map<String, Object> nextRow() throws IOException, InterruptedException, TsurugiTransactionException, ServerException;
+    public @Nullable Map<String, Object> nextRow() throws IOException, InterruptedException, TsurugiTransactionException;
 
-    public void commit() throws IOException, InterruptedException, TsurugiTransactionException, ServerException;
+    public void commit() throws IOException, InterruptedException, TsurugiTransactionException;
 
     @Override
-    public void close() throws IOException, InterruptedException, TsurugiTransactionException, ServerException;
+    public void close() throws IOException, InterruptedException, TsurugiTransactionException;
 }

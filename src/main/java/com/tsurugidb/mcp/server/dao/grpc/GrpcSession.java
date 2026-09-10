@@ -48,18 +48,18 @@ public class GrpcSession extends TsurugiMcpSession {
     }
 
     @Override
-    public void keepAlive() throws IOException, InterruptedException, ServerException {
+    public void keepAlive() throws IOException, InterruptedException {
         session.keepAlive();
     }
 
     @Override
-    public List<String> getTableNameList() throws IOException, InterruptedException, ServerException {
+    public List<String> getTableNameList() throws IOException, InterruptedException {
         List<Name> tableNames = sqlClient.listTables();
         return tableNames.stream().map(Name::toString).toList();
     }
 
     @Override
-    public TableMetadata getTableMetadata(String tableName) throws IOException, InterruptedException, ServerException {
+    public TableMetadata getTableMetadata(String tableName) throws IOException, InterruptedException {
         try {
             var metadata = sqlClient.getTableMetadata(tableName);
             return TableMetadata.of(metadata);
@@ -72,7 +72,7 @@ public class GrpcSession extends TsurugiMcpSession {
     }
 
     @Override
-    public TsurugiMcpTransaction createTransaction(String transactionType, List<String> writePreserve) throws IOException, InterruptedException, ServerException {
+    public TsurugiMcpTransaction createTransaction(String transactionType, List<String> writePreserve) throws IOException, InterruptedException {
         var txOption = getTransactionOption(transactionType, writePreserve);
         var transaction = sqlClient.createTransaction(txOption);
 
@@ -80,7 +80,7 @@ public class GrpcSession extends TsurugiMcpSession {
     }
 
     @Override
-    public void executeDdl(String sql, String transactionType) throws IOException, InterruptedException, ServerException {
+    public void executeDdl(String sql, String transactionType) throws IOException, InterruptedException {
         var txOption = getDdlTransactionOption(transactionType);
 
         try (var transaction = sqlClient.createTransaction(txOption)) {
@@ -102,7 +102,7 @@ public class GrpcSession extends TsurugiMcpSession {
     }
 
     @Override
-    public Map<String, Long> executeStatement(String sql, String transactionType, List<String> writePreserve) throws IOException, InterruptedException, ServerException {
+    public Map<String, Long> executeStatement(String sql, String transactionType, List<String> writePreserve) throws IOException, InterruptedException {
         var txOption = getTransactionOption(transactionType, writePreserve);
 
         var result = new LinkedHashMap<String, Long>();
@@ -135,7 +135,7 @@ public class GrpcSession extends TsurugiMcpSession {
     }
 
     @Override
-    public TsurugiMcpResultSet executeQuery(String sql, String transactionType) throws IOException, InterruptedException, ServerException {
+    public TsurugiMcpResultSet executeQuery(String sql, String transactionType) throws IOException, InterruptedException {
         var txOption = getQueryTransactionOption(transactionType);
 
         var transaction = sqlClient.createTransaction(txOption);
@@ -172,7 +172,7 @@ public class GrpcSession extends TsurugiMcpSession {
     }
 
     @Override
-    public void actualClose() throws IOException, InterruptedException, ServerException {
+    public void actualClose() throws IOException, InterruptedException {
         session.close();
     }
 }

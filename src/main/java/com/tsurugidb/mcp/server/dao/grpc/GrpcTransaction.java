@@ -17,7 +17,6 @@ package com.tsurugidb.mcp.server.dao.grpc;
 
 import java.io.IOException;
 
-import com.tsurugidb.grpc.client.exception.ServerException;
 import com.tsurugidb.grpc.client.sql.SqlClient;
 import com.tsurugidb.grpc.client.transaction.Transaction;
 import com.tsurugidb.mcp.server.dao.TsurugiMcpTransaction;
@@ -33,12 +32,12 @@ public class GrpcTransaction implements TsurugiMcpTransaction {
     }
 
     @Override
-    public void rollback() throws IOException, InterruptedException, ServerException {
+    public void rollback() throws IOException, InterruptedException {
         sqlClient.rollback(transaction);
     }
 
     @Override
-    public void close() throws IOException, InterruptedException, ServerException {
+    public void close() throws IOException, InterruptedException {
         transaction.close();
     }
 }

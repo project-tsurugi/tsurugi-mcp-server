@@ -21,7 +21,6 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import com.tsurugidb.grpc.client.exception.ServerException;
 import com.tsurugidb.iceaxe.transaction.exception.TsurugiTransactionException;
 import com.tsurugidb.mcp.server.entity.TableMetadata;
 
@@ -33,24 +32,24 @@ public abstract class TsurugiMcpSession implements AutoCloseable {
         this.ownerPool = pool;
     }
 
-    public abstract void keepAlive() throws IOException, InterruptedException, ServerException;
+    public abstract void keepAlive() throws IOException, InterruptedException;
 
-    public abstract List<String> getTableNameList() throws IOException, InterruptedException, ServerException;
+    public abstract List<String> getTableNameList() throws IOException, InterruptedException;
 
-    public abstract @Nullable TableMetadata getTableMetadata(String tableName) throws IOException, InterruptedException, ServerException;
+    public abstract @Nullable TableMetadata getTableMetadata(String tableName) throws IOException, InterruptedException;
 
-    public abstract TsurugiMcpTransaction createTransaction(String transactionType, List<String> writePreserve) throws IOException, InterruptedException, TsurugiTransactionException, ServerException;
+    public abstract TsurugiMcpTransaction createTransaction(String transactionType, List<String> writePreserve) throws IOException, InterruptedException, TsurugiTransactionException;
 
-    public abstract void executeDdl(String sql, String transactionType) throws IOException, InterruptedException, TsurugiTransactionException, ServerException;
+    public abstract void executeDdl(String sql, String transactionType) throws IOException, InterruptedException, TsurugiTransactionException;
 
-    public abstract Map<String, Long> executeStatement(String sql, String transactionType, List<String> writePreserve) throws IOException, InterruptedException, TsurugiTransactionException, ServerException;
+    public abstract Map<String, Long> executeStatement(String sql, String transactionType, List<String> writePreserve) throws IOException, InterruptedException, TsurugiTransactionException;
 
-    public abstract TsurugiMcpResultSet executeQuery(String sql, String transactionType) throws IOException, InterruptedException, TsurugiTransactionException, ServerException;
+    public abstract TsurugiMcpResultSet executeQuery(String sql, String transactionType) throws IOException, InterruptedException, TsurugiTransactionException;
 
     @Override
     public final void close() {
         ownerPool.returnSession(this);
     }
 
-    public abstract void actualClose() throws IOException, InterruptedException, ServerException;
+    public abstract void actualClose() throws IOException, InterruptedException;
 }

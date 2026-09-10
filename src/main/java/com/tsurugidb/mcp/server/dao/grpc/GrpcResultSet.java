@@ -20,7 +20,6 @@ import java.io.StringWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.tsurugidb.grpc.client.exception.ServerException;
 import com.tsurugidb.grpc.client.sql.SqlClient;
 import com.tsurugidb.grpc.client.sql.query.QueryRecord;
 import com.tsurugidb.grpc.client.sql.query.ResultSet;
@@ -40,7 +39,7 @@ public class GrpcResultSet implements TsurugiMcpResultSet {
     }
 
     @Override
-    public Map<String, Object> nextRow() throws IOException, InterruptedException, ServerException {
+    public Map<String, Object> nextRow() throws IOException, InterruptedException {
         if (!resultSet.next()) {
             return null;
         }
@@ -66,7 +65,7 @@ public class GrpcResultSet implements TsurugiMcpResultSet {
         return map;
     }
 
-    private byte[] downloadBlob(QueryRecord record, int i) throws IOException, InterruptedException, ServerException {
+    private byte[] downloadBlob(QueryRecord record, int i) throws IOException, InterruptedException {
         var blob = record.getBlobReferenceOrNull(i);
         if (blob == null) {
             return null;
@@ -77,7 +76,7 @@ public class GrpcResultSet implements TsurugiMcpResultSet {
         }
     }
 
-    private String downloadClob(QueryRecord record, int i) throws IOException, InterruptedException, ServerException {
+    private String downloadClob(QueryRecord record, int i) throws IOException, InterruptedException {
         var clob = record.getClobReferenceOrNull(i);
         if (clob == null) {
             return null;
@@ -90,12 +89,12 @@ public class GrpcResultSet implements TsurugiMcpResultSet {
     }
 
     @Override
-    public void commit() throws IOException, InterruptedException, ServerException {
+    public void commit() throws IOException, InterruptedException {
         sqlClient.commit(transaction);
     }
 
     @Override
-    public void close() throws IOException, InterruptedException, ServerException {
+    public void close() throws IOException, InterruptedException {
         try (transaction; resultSet) {
             // close only
         }

@@ -119,7 +119,7 @@ public class GrpcSessionPool extends SessionPool {
     }
 
     @Override
-    protected TsurugiMcpSession createSession() throws IOException, InterruptedException, ServerException {
+    protected TsurugiMcpSession createSession() throws IOException, InterruptedException {
         var session = Session.create(connection, sessionOption);
         return new GrpcSession(this, session);
     }

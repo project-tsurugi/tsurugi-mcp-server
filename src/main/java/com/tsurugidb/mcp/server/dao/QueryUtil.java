@@ -101,7 +101,7 @@ public class QueryUtil {
                     throw new UncheckedIOException(e.getMessage(), e);
                 } catch (InterruptedException e) {
                     throw new InterruptedRuntimeException(e);
-                } catch (TsurugiTransactionException | ServerException e) {
+                } catch (TsurugiTransactionException e) {
                     throw new RuntimeException(e);
                 }
             } catch (Exception e) {
@@ -145,19 +145,19 @@ public class QueryUtil {
                     if (doCommit) {
                         resultSet.commit();
                     }
+                } catch (ServerException e) {
+                    if (e.getDiagnosticCode().isSubcodeOf(SqlDiagnosticCode.CC_EXCEPTION)) {
+                        serializationFauluerMessage = e.getMessage();
+                        this.finish = true;
+                    } else {
+                        throw new RuntimeException(e);
+                    }
                 } catch (IOException e) {
                     throw new UncheckedIOException(e.getMessage(), e);
                 } catch (InterruptedException e) {
                     throw new InterruptedRuntimeException(e);
                 } catch (TsurugiTransactionException e) {
                     if (TsurugiExceptionUtil.getInstance().isSerializationFailure(e)) {
-                        serializationFauluerMessage = e.getMessage();
-                        this.finish = true;
-                    } else {
-                        throw new RuntimeException(e);
-                    }
-                } catch (ServerException e) {
-                    if (e.getDiagnosticCode().isSubcodeOf(SqlDiagnosticCode.CC_EXCEPTION)) {
                         serializationFauluerMessage = e.getMessage();
                         this.finish = true;
                     } else {
@@ -184,7 +184,7 @@ public class QueryUtil {
                     throw new UncheckedIOException(e.getMessage(), e);
                 } catch (InterruptedException e) {
                     throw new InterruptedRuntimeException(e);
-                } catch (TsurugiTransactionException | ServerException e) {
+                } catch (TsurugiTransactionException e) {
                     throw new RuntimeException(e);
                 } finally {
                     this.session = null;
