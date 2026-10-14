@@ -24,9 +24,15 @@ import java.net.URI;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.tsurugidb.grpc.client.connection.Connection;
+import com.tsurugidb.grpc.client.connection.ConnectionOption;
+import com.tsurugidb.grpc.client.exception.TsurugiGrpcException;
+import com.tsurugidb.grpc.client.session.Session;
+import com.tsurugidb.grpc.client.session.SessionOption;
 import com.tsurugidb.iceaxe.TsurugiConnector;
 import com.tsurugidb.mcp.server.Arguments;
 import com.tsurugidb.mcp.server.TsurugiMcpTester;
+import com.tsurugidb.mcp.server.dao.grpc.GrpcCredentialUtil;
 
 class IceaxeCredentialUtilTest extends TsurugiMcpTester {
 
@@ -40,7 +46,7 @@ class IceaxeCredentialUtilTest extends TsurugiMcpTester {
         arguments.setUser(user);
         arguments.setPassword(findPassword());
 
-        connectTest(arguments);
+        connectTest(mode, arguments);
     }
 
     @ParameterizedTest
@@ -52,7 +58,7 @@ class IceaxeCredentialUtilTest extends TsurugiMcpTester {
         var arguments = createTestArguments(mode, false);
         arguments.setAuthToken(authToken);
 
-        connectTest(arguments);
+        connectTest(mode, arguments);
     }
 
     @ParameterizedTest
@@ -64,10 +70,21 @@ class IceaxeCredentialUtilTest extends TsurugiMcpTester {
         var arguments = createTestArguments(mode, false);
         arguments.setCredentials(credentials);
 
-        connectTest(arguments);
+        connectTest(mode, arguments);
     }
 
-    private void connectTest(Arguments arguments) throws IOException, InterruptedException {
+    private void connectTest(TsurugiMode mode, Arguments arguments) throws IOException, InterruptedException {
+        switch (mode) {
+        case ICEAXE:
+            iceaxeConnectTest(arguments);
+            break;
+        case GRPC:
+            gprcConnectTest(arguments);
+            break;
+        }
+    }
+
+    private void iceaxeConnectTest(Arguments arguments) throws IOException, InterruptedException {
         URI endpoint = arguments.getConnectionUri();
         var credentialList = IceaxeCredentialUtil.getCredential(arguments);
         assertEquals(1, credentialList.size());
@@ -76,6 +93,26 @@ class IceaxeCredentialUtilTest extends TsurugiMcpTester {
 
         try (var session = connector.createSession()) {
             session.getLowSession();
+        }
+    }
+
+    private void gprcConnectTest(Arguments arguments) throws TsurugiGrpcException, InterruptedException {
+        String endpoint = arguments.getGrpcEndpoint();
+        var credentialList = GrpcCredentialUtil.getCredential(arguments);
+        assertEquals(1, credentialList.size());
+        var credential = credentialList.getFirst();
+        var connectionOption = ConnectionOption.newBuilder() //
+                .target(endpoint) //
+//              .secure(secure) //
+//              .defaultCommonOption(commonOption) //
+                .build();
+        var connection = Connection.create(connectionOption);
+
+        var sessionOption = SessionOption.newBuilder() //
+                .applicationName("Tsurugi MCP server") //
+                .credential(credential) //
+                .build();
+        try (var session = Session.create(connection, sessionOption)) {
         }
     }
 }

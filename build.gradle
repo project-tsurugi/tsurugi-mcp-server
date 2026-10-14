@@ -60,11 +60,13 @@ license {
 
 tasks.named('test') {
     systemProperty 'tsurugi.dbtest.endpoint', findProperty('dbtest.endpoint') ?: 'tcp://localhost:12345'
+    systemProperty 'tsurugi.dbtest.grpc.endpoint', findProperty('dbtest.grpc.endpoint') ?: 'dns:///localhost:12346'
     systemProperty 'tsurugi.dbtest.user', findProperty('dbtest.user') ?: ''
     systemProperty 'tsurugi.dbtest.password', findProperty('dbtest.password') ?: ''
     systemProperty 'tsurugi.dbtest.auth-token', findProperty('dbtest.auth-token') ?: ''
     systemProperty 'tsurugi.dbtest.credentials', findProperty('dbtest.credentials') ?: ''
     systemProperty 'com.tsurugidb.tsubakuro.jniverify', 'false'
+    jvmArgs '--add-opens=java.base/java.nio=ALL-UNNAMED'
 	useJUnitPlatform()
 }
 

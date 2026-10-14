@@ -24,12 +24,14 @@ import io.modelcontextprotocol.json.McpJsonMapper;
 public abstract class TsurugiMcpTester {
 
     private static final String SYSPROP_DBTEST_ENDPOINT = "tsurugi.dbtest.endpoint";
+    private static final String SYSPROP_DBTEST_GRPC_ENDPOINT = "tsurugi.dbtest.grpc.endpoint";
     private static final String SYSPROP_DBTEST_USER = "tsurugi.dbtest.user";
     private static final String SYSPROP_DBTEST_PASSWORD = "tsurugi.dbtest.password";
     private static final String SYSPROP_DBTEST_AUTH_TOKEN = "tsurugi.dbtest.auth-token";
     private static final String SYSPROP_DBTEST_CREDENTIALS = "tsurugi.dbtest.credentials";
 
-    private static URI endpoint;
+    private static URI iceaxeEndpoint;
+    private static String grpcEndpoint;
 
     public enum TsurugiMode {
         ICEAXE, GRPC
@@ -42,12 +44,23 @@ public abstract class TsurugiMcpTester {
     protected static Arguments createTestArguments(TsurugiMode mode, boolean withCredential) {
         var arguments = new Arguments();
 
-        if (endpoint == null) {
-            String s = System.getProperty(SYSPROP_DBTEST_ENDPOINT, "tcp://localhost:12345");
-            endpoint = URI.create(s);
-
+        switch (mode) {
+        case ICEAXE:
+            if (iceaxeEndpoint == null) {
+                String s = System.getProperty(SYSPROP_DBTEST_ENDPOINT, "tcp://localhost:12345");
+                iceaxeEndpoint = URI.create(s);
+            }
+            arguments.setConnectionUri(iceaxeEndpoint);
+            break;
+        case GRPC:
+            if (grpcEndpoint == null) {
+                grpcEndpoint = System.getProperty(SYSPROP_DBTEST_GRPC_ENDPOINT, "dns:///localhost:12346");
+            }
+            arguments.setGrpcEndpoint(grpcEndpoint);
+            break;
+        default:
+            throw new IllegalArgumentException("Unknown mode: " + mode);
         }
-        arguments.setConnectionUri(endpoint);
 
         if (withCredential) {
             String user = findUser();

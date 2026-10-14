@@ -156,12 +156,23 @@ class QueryToolTest extends TsurugiMcpTester {
                     var args = new HashMap<String, Object>();
                     args.put(QueryTool.SQL, "select * from customer order by c_id");
                     args.put(QueryTool.TRANSACTION_TYPE, "OCC");
-                    var result = (QueryResult) target.action(null, args);
+                    switch (mode) {
+                    case ICEAXE: {
+                        var result = (QueryResult) target.action(null, args);
 
-                    assertNotNull(result.serializationFailureMessage());
-                    assertTrue(result.serializationFailureMessage().contains("CC_EXCEPTION"));
-                    assertFalse(result.hasMoreRecord());
-                    assertNull(result.nextCursor());
+                        assertNotNull(result.serializationFailureMessage());
+                        assertTrue(result.serializationFailureMessage().contains("CC_EXCEPTION"));
+                        assertFalse(result.hasMoreRecord());
+                        assertNull(result.nextCursor());
+                        break;
+                    }
+                    case GRPC: {
+                        var result = (CallToolResult) target.action(null, args);
+                        assertTrue(result.isError());
+                        assertTrue(result.content().toString().contains("CC_EXCEPTION"), () -> result.toString());
+                        break;
+                    }
+                    }
                 } finally {
                     ltx.rollback();
                 }

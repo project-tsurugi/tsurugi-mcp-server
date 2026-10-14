@@ -73,6 +73,23 @@ To use this server with the [Claude Desktop](https://claude.ai/download), add th
 }
 ```
 
+```json
+{
+  "mcpServers": {
+    "tsurugidb": {
+      "command": "java",
+      "args": [
+        "--add-opens=java.base/java.nio=ALL-UNNAMED",
+        "-jar",
+        "/path/to/tsurugi-mcp-server-all.jar",
+        "--grpc-endpoint", "dns:///localhost:12346",
+        "--credentials", "/path/to/credential-file"
+      ]
+    }
+  }
+}
+```
+
 - `command`
   - If the `java` command is not included in the PATH, specify the full path. (e.g., `"C:/Program Files/Java/jdk-21/bin/java"`)
 - `args`
@@ -105,6 +122,7 @@ ls build/libs/
 ```bash
 cd tsurugi-mcp-server
 ./gradlew test -Pdbtest.endpoint=tcp://localhost:12345 \
+-Pdbtest.grpc.endpoint=localhost:12346 \
 -Pdbtest.user=user \
 -Pdbtest.password=password \
 -Pdbtest.auth-token=token \
