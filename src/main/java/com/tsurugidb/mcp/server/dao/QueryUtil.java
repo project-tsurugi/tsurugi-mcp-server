@@ -87,7 +87,7 @@ public class QueryUtil {
     public record QueryResult(List<Map<String, Object>> rows, boolean hasMoreRecord, String nextCursor, String serializationFailureMessage) {
     }
 
-    private class QueryCache implements AutoCloseable {
+    private class QueryCache {
         private final int queryId;
         private TsurugiSession session;
         private TsurugiSqlQuery<TsurugiResultRecord> ps;
@@ -103,103 +103,111 @@ public class QueryUtil {
         }
 
         public void initialize(String sql, TgTxOption txOption) {
-            try (var t = this) {
-                try {
-                    var resultMapping = TgResultMapping.of(record -> record);
-                    this.ps = session.createQuery(sql, resultMapping);
-                    this.transaction = session.createTransaction(txOption);
-                    this.queryResult = transaction.executeQuery(ps);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e.getMessage(), e);
-                } catch (InterruptedException e) {
-                    throw new InterruptedRuntimeException(e);
-                } catch (TsurugiTransactionException e) {
-                    throw new RuntimeException(e);
-                }
+            try {
+                initializeMain(sql, txOption);
             } catch (Exception e) {
                 LOG.warn("QueryCache.initialize error: {}", e.toString());
                 this.finish = true;
                 throw e;
+            } finally {
+                closeIfFinish();
+            }
+        }
+
+        private void initializeMain(String sql, TgTxOption txOption) {
+            try {
+                var resultMapping = TgResultMapping.of(record -> record);
+                this.ps = session.createQuery(sql, resultMapping);
+                this.transaction = session.createTransaction(txOption);
+                this.queryResult = transaction.executeQuery(ps);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e.getMessage(), e);
+            } catch (InterruptedException e) {
+                throw new InterruptedRuntimeException(e);
+            } catch (TsurugiTransactionException e) {
+                throw new RuntimeException(e);
             }
         }
 
         public QueryResult execute() {
-            try (var t = this) {
-                var list = new ArrayList<Map<String, Object>>();
-                list.addAll(this.prevList);
-                prevList.clear();
-                int estimateTotalSize = 128 + this.prevSize;
-                prevSize = 0;
-
-                String serializationFauluerMessage = null;
-                try {
-                    boolean doCommit = false;
-                    for (;;) {
-                        var recordOpt = queryResult.findRecord();
-                        if (recordOpt.isEmpty()) {
-                            doCommit = true;
-                            this.finish = true;
-                            break;
-                        }
-                        var record = recordOpt.get();
-
-                        var nameList = record.getNameList();
-                        int size = nameList.size();
-                        var map = new LinkedHashMap<String, Object>(size);
-                        for (int j = 0; j < size; j++) {
-                            String name = nameList.get(j);
-                            Object value = convert(record.getValueOrNull(j));
-                            map.put(name, value);
-                        }
-                        String text = jsonMapper.writeValueAsString(map);
-//                      int estimateSize = text.length() + 8;
-                        int estimateSize = text.getBytes(StandardCharsets.UTF_8).length + 8;
-                        if (estimateTotalSize + estimateSize >= limitSize) {
-                            prevList.add(map);
-                            this.prevSize = estimateSize;
-                            break;
-                        }
-                        estimateTotalSize += estimateSize;
-                        list.add(map);
-                    }
-
-                    if (doCommit) {
-                        transaction.commit(TgCommitType.DEFAULT);
-                    }
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e.getMessage(), e);
-                } catch (InterruptedException e) {
-                    throw new InterruptedRuntimeException(e);
-                } catch (TsurugiTransactionException e) {
-                    if (TsurugiExceptionUtil.getInstance().isSerializationFailure(e)) {
-                        serializationFauluerMessage = e.getMessage();
-                        this.finish = true;
-                    } else {
-                        throw new RuntimeException(e);
-                    }
-                }
-
-                boolean hasMore = !this.finish;
-                String nextCursor = this.finish ? null : "query" + queryId;
-                return new QueryResult(list, hasMore, nextCursor, serializationFauluerMessage);
+            try {
+                return executeMain();
             } catch (Exception e) {
                 LOG.warn("QueryCache.execute error: {}", e.toString());
                 this.finish = true;
                 throw e;
+            } finally {
+                closeIfFinish();
             }
         }
 
-        @Override
-        public void close() {
-            if (finish) {
+        private QueryResult executeMain() {
+            var list = new ArrayList<Map<String, Object>>();
+            list.addAll(this.prevList);
+            prevList.clear();
+            int estimateTotalSize = 128 + this.prevSize;
+            prevSize = 0;
+
+            String serializationFauluerMessage = null;
+            try {
+                boolean doCommit = false;
+                for (;;) {
+                    var recordOpt = queryResult.findRecord();
+                    if (recordOpt.isEmpty()) {
+                        queryResult.close();
+                        doCommit = true;
+                        this.finish = true;
+                        break;
+                    }
+                    var record = recordOpt.get();
+
+                    var nameList = record.getNameList();
+                    int size = nameList.size();
+                    var map = new LinkedHashMap<String, Object>(size);
+                    for (int j = 0; j < size; j++) {
+                        String name = nameList.get(j);
+                        Object value = convert(record.getValueOrNull(j));
+                        map.put(name, value);
+                    }
+                    String text = jsonMapper.writeValueAsString(map);
+//                  int estimateSize = text.length() + 8;
+                    int estimateSize = text.getBytes(StandardCharsets.UTF_8).length + 8;
+                    if (estimateTotalSize + estimateSize >= limitSize) {
+                        prevList.add(map);
+                        this.prevSize = estimateSize;
+                        break;
+                    }
+                    estimateTotalSize += estimateSize;
+                    list.add(map);
+                }
+
+                if (doCommit) {
+                    transaction.commit(TgCommitType.DEFAULT);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e.getMessage(), e);
+            } catch (InterruptedException e) {
+                throw new InterruptedRuntimeException(e);
+            } catch (TsurugiTransactionException e) {
+                if (TsurugiExceptionUtil.getInstance().isSerializationFailure(e)) {
+                    serializationFauluerMessage = e.getMessage();
+                    this.finish = true;
+                } else {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            boolean hasMore = !this.finish;
+            String nextCursor = this.finish ? null : "query" + queryId;
+            return new QueryResult(list, hasMore, nextCursor, serializationFauluerMessage);
+        }
+
+        private void closeIfFinish() {
+            if (this.finish) {
                 try (var s = session; var p = ps; var t = transaction; var qr = queryResult) {
                     // close only
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e.getMessage(), e);
-                } catch (InterruptedException e) {
-                    throw new InterruptedRuntimeException(e);
-                } catch (TsurugiTransactionException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    LOG.warn("QueryCache.close error", e);
                 } finally {
                     this.session = null;
                     this.ps = null;

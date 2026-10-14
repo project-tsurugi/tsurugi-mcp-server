@@ -37,6 +37,8 @@ import com.tsurugidb.mcp.server.TsurugiMcpTester;
 import com.tsurugidb.mcp.server.dao.QueryUtil.QueryResult;
 import com.tsurugidb.mcp.server.dao.SessionPool;
 
+import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
+
 class QueryToolTest extends TsurugiMcpTester {
 
     private static final int SIZE = 500;
@@ -164,6 +166,26 @@ class QueryToolTest extends TsurugiMcpTester {
                 } finally {
                     ltx.rollback();
                 }
+            }
+        }
+    }
+
+    @Test
+    void action_selectError() throws Exception {
+        var arguments = createTestArguments();
+        try (var pool = SessionPool.create(arguments)) {
+            var target = new QueryTool();
+            target.initialize(createJsonMapper(), arguments, pool);
+
+            // Verification that the session is released when an error occurs.
+            for (int i = 0; i < 200; i++) {
+                var args = new HashMap<String, Object>();
+                args.put(QueryTool.SQL, "select error");
+                args.put(QueryTool.TRANSACTION_TYPE, "OCC");
+                var result = (CallToolResult) target.action(null, args);
+
+                assertTrue(result.isError());
+                assertTrue(result.content().toString().contains("SYMBOL_ANALYZE_EXCEPTION"), () -> result.toString());
             }
         }
     }
