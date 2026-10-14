@@ -26,8 +26,11 @@ public interface TsurugiMcpResultSet extends AutoCloseable {
 
     public @Nullable Map<String, Object> nextRow() throws IOException, InterruptedException, TsurugiTransactionException;
 
+    public void closeResultSet() throws IOException, InterruptedException, TsurugiTransactionException;
+
     public void commit() throws IOException, InterruptedException, TsurugiTransactionException;
 
     @Override
     public void close() throws IOException, InterruptedException, TsurugiTransactionException;
+
 }

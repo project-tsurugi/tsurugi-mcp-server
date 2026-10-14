@@ -89,6 +89,13 @@ public class GrpcResultSet implements TsurugiMcpResultSet {
     }
 
     @Override
+    public void closeResultSet() {
+        try (resultSet) {
+            // close only
+        }
+    }
+
+    @Override
     public void commit() throws IOException, InterruptedException {
         sqlClient.commit(transaction);
     }

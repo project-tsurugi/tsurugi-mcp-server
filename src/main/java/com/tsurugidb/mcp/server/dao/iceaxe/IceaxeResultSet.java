@@ -69,12 +69,19 @@ public class IceaxeResultSet implements TsurugiMcpResultSet {
     }
 
     @Override
+    public void closeResultSet() throws IOException, InterruptedException, TsurugiTransactionException {
+        try (queryResult) {
+            // close only
+        }
+    }
+
+    @Override
     public void commit() throws IOException, InterruptedException, TsurugiTransactionException {
         transaction.commit(TgCommitType.DEFAULT);
     }
 
     @Override
-    public void close() throws java.io.IOException, InterruptedException, TsurugiTransactionException {
+    public void close() throws IOException, InterruptedException, TsurugiTransactionException {
         try (transaction; ps; queryResult) {
             // close only
         }
