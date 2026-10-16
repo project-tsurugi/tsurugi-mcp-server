@@ -200,4 +200,42 @@ class QueryToolTest extends TsurugiMcpTester {
             }
         }
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "ICEAXE", "GRPC" })
+    void queryPoolSize(TsurugiMode mode) throws Exception {
+        var arguments = createTestArguments(mode);
+        arguments.setQueryPoolSize(2);
+        try (var pool = SessionPool.create(arguments)) {
+            var target = new QueryTool();
+            target.initialize(createJsonMapper(), arguments, pool);
+
+            var args = new HashMap<String, Object>();
+            args.put(QueryTool.SQL, "select * from customer order by c_id");
+            var result11 = (QueryResult) target.action(null, args);
+            assertNotNull(result11.nextCursor());
+
+            var result21 = (QueryResult) target.action(null, args);
+            assertNotNull(result21.nextCursor());
+
+            var result31 = (QueryResult) target.action(null, args);
+            assertNotNull(result31.nextCursor());
+
+            Thread.sleep(10); // Wait for the query pool to be released
+
+            var args2 = new HashMap<String, Object>();
+            args2.put(QueryTool.CURSOR, result11.nextCursor());
+            var result12 = (CallToolResult) target.action(null, args2);
+            assertTrue(result12.isError());
+            assertTrue(result12.content().toString().contains("failed: not found ongoing query"), () -> result12.toString());
+
+            args2.put(QueryTool.CURSOR, result21.nextCursor());
+            var result22 = (QueryResult) target.action(null, args2);
+            assertNotNull(result22.rows());
+
+            args2.put(QueryTool.CURSOR, result31.nextCursor());
+            var result32 = (QueryResult) target.action(null, args2);
+            assertNotNull(result32.rows());
+        }
+    }
 }

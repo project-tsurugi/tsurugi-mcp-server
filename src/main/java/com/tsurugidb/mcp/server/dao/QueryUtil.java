@@ -20,9 +20,9 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -45,12 +45,13 @@ public class QueryUtil {
     private final McpJsonMapper jsonMapper;
     private final SessionPool pool;
     private final int limitSize;
-    private final Map<String, QueryCache> queryMap = new ConcurrentHashMap<>();
+    private final QueryPool queryPool;
 
     public QueryUtil(McpJsonMapper jsonMapper, Arguments arguments, SessionPool pool) {
         this.jsonMapper = jsonMapper;
         this.pool = pool;
         this.limitSize = arguments.getResponseLimitSize();
+        this.queryPool = new QueryPool(arguments.getQueryPoolSize());
     }
 
     public QueryResult execute(String sql, String transactionType, String cursor) {
@@ -59,7 +60,7 @@ public class QueryUtil {
             cache = new QueryCache(pool.getSession());
             cache.initialize(sql, transactionType);
         } else {
-            cache = queryMap.remove(cursor);
+            cache = queryPool.remove(cursor);
             if (cache == null) {
                 throw new RuntimeException(MessageFormat.format("not found ongoing query. cursor={0}", cursor));
             }
@@ -69,13 +70,60 @@ public class QueryUtil {
 
         String nextCursor = result.nextCursor();
         if (nextCursor != null) {
-            queryMap.put(nextCursor, cache);
+            queryPool.put(nextCursor, cache);
         }
 
         return result;
     }
 
     public record QueryResult(List<Map<String, Object>> rows, boolean hasMoreRecord, String nextCursor, String serializationFailureMessage) {
+    }
+
+    private class QueryPool {
+        private final int queryPoolSize;
+        private final Map<String, QueryCache> queryMap = new LinkedHashMap<>(16, 0.75f, true);
+
+        public QueryPool(int queryPoolSize) {
+            this.queryPoolSize = queryPoolSize;
+        }
+
+        public void put(String cursor, QueryCache cache) {
+            synchronized (queryMap) {
+                queryMap.put(cursor, cache);
+
+                if (this.queryPoolSize >= 1 && queryMap.size() > this.queryPoolSize) {
+                    Thread.startVirtualThread(() -> {
+                        removeOldest();
+                    });
+                }
+            }
+        }
+
+        public QueryCache remove(String cursor) {
+            synchronized (queryMap) {
+                return queryMap.remove(cursor);
+            }
+        }
+
+        private void removeOldest() {
+            for (;;) {
+                Map.Entry<String, QueryCache> entry;
+                synchronized (queryMap) {
+                    if (queryMap.size() <= this.queryPoolSize) {
+                        break;
+                    }
+
+                    var i = queryMap.entrySet().iterator();
+                    entry = i.next();
+                    i.remove();
+                }
+
+                String cursor = entry.getKey();
+                var cache = entry.getValue();
+                LOG.info("QueryPool.removeOldest(): cursor={}", cursor);
+                cache.close();
+            }
+        }
     }
 
     private class QueryCache {
@@ -188,14 +236,18 @@ public class QueryUtil {
 
         private void closeIfFinish() {
             if (this.finish) {
-                try (var s = session; var rs = resultSet) {
-                    // close only
-                } catch (Exception e) {
-                    LOG.warn("QueryCache.close error", e);
-                } finally {
-                    this.session = null;
-                    this.resultSet = null;
-                }
+                close();
+            }
+        }
+
+        void close() {
+            try (var s = session; var rs = resultSet) {
+                // close only
+            } catch (Exception e) {
+                LOG.warn("QueryCache.close error. queryId={}", queryId, e);
+            } finally {
+                this.session = null;
+                this.resultSet = null;
             }
         }
     }

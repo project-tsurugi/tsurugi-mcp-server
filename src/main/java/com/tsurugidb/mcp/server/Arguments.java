@@ -46,6 +46,7 @@ public class Arguments {
     private String grpcEndpoint;
     private boolean grpcSecure = false;
 
+    private int queryPoolSize = 0;
     private int responseLimistSize = 10 * 1024;
     private boolean printHelp;
 
@@ -272,6 +273,7 @@ public class Arguments {
             arity = 1, //
             description = "gRPC server endpoint", //
             required = false)
+
     public void setGrpcEndpoint(String endpoint) {
         this.grpcEndpoint = endpoint;
     }
@@ -293,11 +295,26 @@ public class Arguments {
         return this.grpcSecure;
     }
 
+    // Query
+
+    @Parameter(order = 80, //
+            names = { "--query-pool-size" }, //
+            arity = 1, //
+            description = "The size of the query pool. 0 or less means unlimited.", //
+            required = false)
+    public void setQueryPoolSize(int size) {
+        this.queryPoolSize = size;
+    }
+
+    public int getQueryPoolSize() {
+        return this.queryPoolSize;
+    }
+
     // Response
 
     @Parameter(order = 90, //
             names = { "--response-limit-size" }, //
-            arity = 0, //
+            arity = 1, //
             description = "Limit size per page of query results [byte].", //
             required = false)
     public void setResponseLimitSize(int size) {
