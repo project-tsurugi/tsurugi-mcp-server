@@ -77,8 +77,8 @@ To use this server with the [Claude Desktop](https://claude.ai/download), add th
   - If the `java` command is not included in the PATH, specify the full path. (e.g., `"C:/Program Files/Java/jdk-21/bin/java"`)
 - `args`
   - Specify the jar file by full path.
-  - `-c` or `--connection` - the endpoint URL to connect Tsurugi. (required)
-  - `--db-timeout` - default timeout (in seconds) for accessing Tsurugi. If set to 0, there is no timeout.
+  - `-c` or `--connection` - The endpoint URL to connect Tsurugi. (required)
+  - `--db-timeout` - Default timeout (in seconds) for accessing Tsurugi. If set to 0, there is no timeout.
   - Specify one of the following credentials.
     - `"--user", "user"` and `"--password", "password"`
     - `"--auth-token", "auth token"`
@@ -91,6 +91,8 @@ To use this server with the [Claude Desktop](https://claude.ai/download), add th
   - If you want to limit the tools used, add `--enable-tools`. (e.g., for read-only access: `"--enable-tools", "listTableNames, getTableMetadata, query"`)
   - If resources is not used, add `"--resource", "false"`.
   - If prompts is not used, add `"--prompt", "false"`.
+  - `--query-pool-size` - The size of the query pool. 0 or less means unlimited.
+  - `--response-limit-size` - Limit size per page of query results [byte].
 
 ## How to build
 
